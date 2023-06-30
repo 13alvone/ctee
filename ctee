@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e # Exit on error
+
+# Function to cleanup temp files
+function cleanup {
+  rm -f "$temp_bashrc"
+}
+
+# Register the cleanup function to be called on the EXIT signal
+trap cleanup EXIT
+
+# Generate a timestamp for unique filename
+timestamp=$(date +%Y%m%d%H%M%S)
+
+# Prompt the user for the recording filename if not provided
+if [ -z "$1" ]
+then
+    filename="cli_record_$timestamp"
+else
+    filename=$1
+    if [ -f "$filename" ]; then
+        echo "Error: File $filename already exists."
+        exit 1
+    fi
+fi
+
+# Create a temporary bashrc file
+temp_bashrc=$(mktemp)
+
+# Define the commands to stop recording and change the prompt
+echo "PS1='[RECORDING] \w \$ '" >> $temp_bashrc
+echo "alias stop_recording='echo Recording Ended; exit'" >> $temp_bashrc
+
+# Start recording with the 'script' command
+# The --rcfile option ensures the temporary bashrc file is loaded
+script -a $filename -q --command="bash --rcfile $temp_bashrc"
+
+echo "Recording saved in $filename"
