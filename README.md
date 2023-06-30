@@ -1,4 +1,4 @@
-# ctee
+# CTEE
 CTEE is a Linux Only bash script that records all subsequent Bash activity in a given shell for further review and later recall and/or sharing.
 The script uses the Linux `script` utility to save all terminal output to a file, which can be useful for logging, debugging, or sharing terminal sessions.
 
