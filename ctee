@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e # Exit on error
+
+# Define directory to save output files
+output_dir=$HOME/.ctee/
 
 # Function to cleanup temp files
 function cleanup {
@@ -19,21 +22,31 @@ then
     filename="cli_record_$timestamp"
 else
     filename=$1
-    if [ -f "$filename" ]; then
-        echo "Error: File $filename already exists."
+    if [ -f "$output_dir$filename" ]; then
+        echo "Error: File $output_dir$filename already exists."
         exit 1
     fi
+fi
+
+# Check if the 'script' utility is installed and accessible
+if ! command -v script &> /dev/null
+then
+    echo "The 'script' utility could not be found. Please install it and try again."
+    exit 1
 fi
 
 # Create a temporary bashrc file
 temp_bashrc=$(mktemp)
 
 # Define the commands to stop recording and change the prompt
-echo "PS1='[RECORDING] \w \$ '" >> $temp_bashrc
-echo "alias stop_recording='echo Recording Ended; exit'" >> $temp_bashrc
+echo "PS1='[RECORDING] \w \$ '" >> "$temp_bashrc"
+echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
+
+# Create the target directory if it doesn't already exist
+mkdir -p $output_dir
 
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
-script -a $filename -q --command="bash --rcfile $temp_bashrc"
+script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 
-echo "Recording saved in $filename"
+echo "Recording saved in $output_dir$filename"
