@@ -42,6 +42,9 @@ temp_bashrc=$(mktemp)
 echo "PS1='CTEE [REC] \$ '" >> "$temp_bashrc"
 echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
 
+# Add optional alias for cspeakes_enumerator. Not default installed, but works if so.
+echo "alias target=\"/usr/local/bin/create_target.sh\"" >> "$temp_bashrc"
+
 # Create the target directory if it doesn't already exist
 mkdir -p $output_dir
 
