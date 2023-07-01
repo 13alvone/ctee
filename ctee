@@ -39,7 +39,7 @@ fi
 temp_bashrc=$(mktemp)
 
 # Define the commands to stop recording and change the prompt
-echo "PS1='[RECORDING] \w \$ '" >> "$temp_bashrc"
+echo "PS1='CTEE [REC] \$ '" >> "$temp_bashrc"
 echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
 
 # Create the target directory if it doesn't already exist
