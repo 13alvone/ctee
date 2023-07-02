@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/bin/zsh
 
-cp ctee /usr/local/bin
-chmod +x /usr/local/bin/ctee
+sudo mkdir -p $HOME/.ctee/etc/
+
+sudo cp ctee /usr/local/bin/
+sudo chmod +x /usr/local/bin/ctee
+sudo cp zshrc.ctee $HOME/.ctee/etc/
+sudo chmod +x $HOME/.ctee/etc/zshrc.ctee
+

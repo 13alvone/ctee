@@ -1,13 +1,14 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 set -e # Exit on error
 
 # Define directory to save output files
-output_dir=$HOME/.ctee/
+output_dir="$HOME/.ctee/"
 
 # Function to cleanup temp files
 function cleanup {
-  rm -f "$temp_bashrc"
+  rm -f "$temp_zshrc"
+  rm -rf "$temp_zsh_dir"
 }
 
 # Register the cleanup function to be called on the EXIT signal
@@ -21,9 +22,9 @@ if [ -z "$1" ]
 then
     filename="cli_record_$timestamp"
 else
-    filename=$1
-    if [ -f "$output_dir$filename" ]; then
-        echo "Error: File $output_dir$filename already exists."
+    filename="$1"
+    if [ -f "${output_dir}${filename}" ]; then
+        echo "Error: File ${output_dir}${filename} already exists."
         exit 1
     fi
 fi
@@ -35,21 +36,22 @@ then
     exit 1
 fi
 
-# Create a temporary bashrc file
-temp_bashrc=$(mktemp)
+# Create a temporary directory and zshrc file in it
+temp_zsh_dir=$(mktemp -d)
+temp_zshrc="$temp_zsh_dir/.zshrc"
 
 # Define the commands to stop recording and change the prompt
-echo "PS1='CTEE [REC] \$ '" >> "$temp_bashrc"
-echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
+echo "PROMPT='CTEE [REC] %_ '" >> "$temp_zshrc"
+echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_zshrc"
 
 # Add optional alias for cspeakes_enumerator. Not default installed, but works if so.
-echo "alias target=\"/usr/local/bin/create_target.sh\"" >> "$temp_bashrc"
+echo "alias target=\"/usr/local/bin/create_target.sh\"" >> "$temp_zshrc"
 
 # Create the target directory if it doesn't already exist
-mkdir -p $output_dir
+mkdir -p "$output_dir"
 
 # Start recording with the 'script' command
-# The --rcfile option ensures the temporary bashrc file is loaded
-script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
+ZDOTDIR="$temp_zsh_dir" script -a "${output_dir}${filename}" -q --command="zsh"
 
-echo "Recording saved in $output_dir$filename"
+echo "Recording saved in ${output_dir}${filename}"
+
