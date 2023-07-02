@@ -69,5 +69,3 @@ script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 
 echo "Recording saved in $output_dir$filename"
 
-cleanup
-
