@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import glob
+import datetime
+import sqlite3
+import argparse
+
+   
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('notes', type=str, help='Your notes string.', default="N/A", nargs='?')
+    return parser.parse_args()
+
+
+def main():
+    global args
+    
+    ctee_dir = os.path.expanduser('~/.ctee/')
+    ctee_pid_file = os.path.join(ctee_dir, 'ctee.pid')
+
+    # Check that ctee is running, exit if not.
+    if not os.path.isfile(ctee_pid_file) or not os.getenv('CTEE_RECORDING') == "1":
+        print("[!] Not running in a ctee shell. Start `ctee` first by invoking it directly and try `cxwrite` again.")
+        return 1
+
+    args = get_args()
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    database_path = os.path.join(ctee_dir, 'cxwrite_notes.db')
+
+    # Get the latest log file
+    list_of_files = glob.glob(ctee_dir + 'cli_record_*')
+    latest_file = max(list_of_files, key=os.path.getctime)
+
+    # Get the last 50 lines of latest log file
+    with open(latest_file, 'r') as f:
+        lines = f.readlines()
+    last_50_lines = ''.join(lines[-50:])  # join lines into a single string
+
+    # Create or connect to the SQLite database and insert the note
+    conn = sqlite3.connect(database_path)
+    c = conn.cursor()
+
+    # Create table if it doesn't exist
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS notes (
+            timestamp TEXT,
+            note TEXT,
+            additional_context TEXT
+        )
+    ''')
+
+    # Insert the note
+    c.execute('''
+        INSERT INTO notes VALUES (?, ?, ?)
+    ''', (timestamp, args.notes, last_50_lines))
+
+    # Save (commit) the changes and close the connection
+    conn.commit()
+    conn.close()
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+

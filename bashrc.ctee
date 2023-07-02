@@ -30,6 +30,7 @@ fi
 
 # Custom Additions:
 export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
+export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shell as active. cxwrite can't access unless this exists.
 alias target="/usr/local/bin/create_target.sh"
 alias stop_recording='echo Recording Ended; exit'
 alias stop='echo Recording Ended; exit'
