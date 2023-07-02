@@ -13,12 +13,21 @@ script_dir=$(dirname "$0")
 
 # Function to cleanup temp files and remove pid file
 function cleanup {
+  echo "Cleaning up..."
   rm -f "$temp_bashrc"
   rm -f "$output_dir/ctee.pid" # remove pid file when script ends
+
+  # Remove files older than 7 days
+  find "$output_dir" -name "cli_record_*" -mtime +7 -exec rm {} \;
+
+  # If there are more than 20 files, delete the oldest
+  (ls -t1 "$output_dir/cli_record_"* | head -n 20; ls "$output_dir/cli_record_"*) | sort | uniq -u | xargs -I {} rm -f -- {}
+
+  exit 0
 }
 
 # Register the cleanup function to be called on the EXIT signal
-trap cleanup EXIT
+trap cleanup EXIT INT QUIT TERM HUP
 
 # Generate a timestamp for unique filename
 timestamp=$(date +%Y%m%d%H%M%S)
@@ -45,10 +54,7 @@ fi
 # Create a temporary bashrc file
 temp_bashrc=$(mktemp)
 
-# echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
-
-# Add optional alias for cspeakes_enumerator. Not default installed, but works if so.
-# echo "alias target=\"/usr/local/bin/create_target.sh\"" >> "$temp_bashrc"
+echo "export TMOUT=86400; readonly TMOUT" >> "$temp_bashrc" # Set a 24 hour timeout
 cat $HOME/.ctee/etc/bashrc.ctee >> "$temp_bashrc"
 
 # Create the target directory if it doesn't already exist
@@ -64,5 +70,4 @@ script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 echo "Recording saved in $output_dir$filename"
 
 cleanup
-exit 0
 

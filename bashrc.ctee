@@ -29,6 +29,7 @@ if ! shopt -oq posix; then
 fi
 
 # Custom Additions:
+export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
 alias target="/usr/local/bin/create_target.sh"
 alias stop_recording='echo Recording Ended; exit'
 alias stop='echo Recording Ended; exit'
