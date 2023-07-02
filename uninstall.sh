@@ -1,5 +1,4 @@
 #!/bin/zsh
-set -x
 
 if [ "$(id -u)" = "0" ]; then
     echo "[x] This script should not be started with with SUDO but will request it for a few subcommands.." >&2
