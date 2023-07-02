@@ -35,4 +35,4 @@ alias target="/usr/local/bin/create_target.sh"
 alias stop_recording='echo Recording Ended; exit'
 alias stop='echo Recording Ended; exit'
 alias quit='echo Recording Ended; exit'
-alias cn='cxwrite'
+alias cn='/usr/local/bin/cxwrite'
