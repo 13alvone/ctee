@@ -13,7 +13,8 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+#PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+PS1='CTEE [REC] > '
 
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
@@ -29,3 +30,6 @@ fi
 
 # Custom Additions:
 alias target="/usr/local/bin/create_target.sh"
+alias stop_recording='echo Recording Ended; exit'
+alias stop='echo Recording Ended; exit'
+alias quit='echo Recording Ended; exit'

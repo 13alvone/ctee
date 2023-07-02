@@ -11,9 +11,10 @@ set -e # Exit on error
 output_dir=$HOME/.ctee/
 script_dir=$(dirname "$0")
 
-# Function to cleanup temp files
+# Function to cleanup temp files and remove pid file
 function cleanup {
   rm -f "$temp_bashrc"
+  rm -f "$output_dir/ctee.pid" # remove pid file when script ends
 }
 
 # Register the cleanup function to be called on the EXIT signal
@@ -44,8 +45,6 @@ fi
 # Create a temporary bashrc file
 temp_bashrc=$(mktemp)
 
-# Define the commands to stop recording and change the prompt
-# echo "PS1='CTEE [REC] \$ '" >> "$temp_bashrc"
 # echo "alias stop_recording='echo Recording Ended; exit'" >> "$temp_bashrc"
 
 # Add optional alias for cspeakes_enumerator. Not default installed, but works if so.
@@ -55,8 +54,15 @@ cat $HOME/.ctee/etc/bashrc.ctee >> "$temp_bashrc"
 # Create the target directory if it doesn't already exist
 mkdir -p $output_dir
 
+# Write the pid to a file
+echo $$ > "$output_dir/ctee.pid"
+
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
 script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 
 echo "Recording saved in $output_dir$filename"
+
+cleanup
+exit 0
+
