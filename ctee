@@ -11,6 +11,21 @@ function cleanup {
   rm -rf "$temp_zsh_dir"
 }
 
+# Function to delete old ctee sessions
+function delete_old_sessions {
+  # If the output directory doesn't exist, no need to clean up
+  if [[ ! -d "$output_dir" ]]; then
+    return 0
+  fi
+  
+  # Use find to delete files in output_dir that were last modified more than 7 days ago
+  # -type f ensures we're only looking at files, not directories
+  # -mtime +7 matches files that were last modified more than 7 days ago
+  # ! -exec fuser -s {} \; matches files that are not currently being written to
+  # -exec rm {} \; deletes the matched files
+  find "$output_dir" -type f -mtime +7 ! -exec fuser -s {} \; -exec rm {} \;
+}
+
 # Register the cleanup function to be called on the EXIT signal
 trap cleanup EXIT
 
@@ -52,6 +67,9 @@ mkdir -p "$output_dir"
 
 # Start recording with the 'script' command
 ZDOTDIR="$temp_zsh_dir" script -a "${output_dir}${filename}" -q --command="zsh"
+
+# Delete old sessions
+delete_old_sessions
 
 echo "Recording saved in ${output_dir}${filename}"
 
