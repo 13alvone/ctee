@@ -19,11 +19,15 @@ function delete_old_sessions {
   fi
   
   # Use find to delete files in output_dir that were last modified more than 7 days ago
-  # -type f ensures we're only looking at files, not directories
-  # -mtime +7 matches files that were last modified more than 7 days ago
-  # ! -exec fuser -s {} \; matches files that are not currently being written to
-  # -exec rm {} \; deletes the matched files
   find "$output_dir" -type f -mtime +7 ! -exec fuser -s {} \; -exec rm {} \;
+}
+
+# Function to remove strange byte sequences
+function remove_strange_bytes {
+  # The tr command below deletes non-printable characters. 
+  # Note that this includes newlines, so they're added back with the -c option.
+  tr -cd '\11\12\15\40-\176' < "$1" > "${1}_clean"
+  mv "${1}_clean" "$1"
 }
 
 # Register the cleanup function to be called on the EXIT signal
@@ -67,6 +71,9 @@ mkdir -p "$output_dir"
 
 # Start recording with the 'script' command
 ZDOTDIR="$temp_zsh_dir" script -a "${output_dir}${filename}" -q --command="zsh"
+
+# Remove strange bytes
+remove_strange_bytes "${output_dir}${filename}"
 
 # Delete old sessions
 delete_old_sessions
