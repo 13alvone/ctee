@@ -74,6 +74,6 @@ echo "$output_dir$filename:$output_dir$tfilename" > $output_cache_path
 echo "[+] Most Recent CLI Recording Files stored here:"
 echo "    $output_cache_path"
 
-./zero_timing -f "$output_dir$tfilename"
+zero_timing -f "$output_dir$tfilename"
 
 scriptreplay -t "$output_dir$tfilename" -B $output_dir$filename | tee ./$filename"_HISTORY_PARSED"
