@@ -35,6 +35,8 @@ def main():
 
     file_out.close()
 
+    print(f'[+] Successfully converted the following timing to be instantaneous:\n\t{args.filepath}')
+
 
 if __name__ == '__main__':
     main()

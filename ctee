@@ -58,6 +58,7 @@ mkdir -p $output_dir
 
 # Write the pid to a file
 echo $$ > "$output_dir/ctee.pid"
+output_cache_path=$output_dir"ctee_cache"
 
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
@@ -65,4 +66,14 @@ script --timing=$output_dir$tfilename -m advanced -a "$output_dir$filename" -q -
 
 echo "Recording timing in $output_dir$tfilename"
 echo "Recording saved in $output_dir$filename"
+echo ""
+echo "[+] CLI Recording File : CLI Recording Timer File"
+echo ""
+echo "    $output_dir$filename:$output_dir$tfilename"
+echo "$output_dir$filename:$output_dir$tfilename" > $output_cache_path
+echo "[+] Most Recent CLI Recording Files stored here:"
+echo "    $output_cache_path"
 
+./zero_timing -f "$output_dir$tfilename"
+
+scriptreplay -t "$output_dir$tfilename" -B $output_dir$filename | tee ./$filename"_HISTORY_PARSED"
