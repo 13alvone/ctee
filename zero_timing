@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+
+import os
+import argparse
+
+args = None
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--filepath', help='Target Filepath', type=str, required=True)
+    return parser.parse_args()
+
+
+def main():
+    global args
+    args = get_args()
+    file_in = open(args.filepath, 'rb')
+    _data = file_in.read()
+    file_in.close()
+
+    try:
+        _data_list = _data.decode(errors='ignore').split('\n')
+    except Exception as e:
+        print(f'[!] Errors decoding the data.\n\t[-] Errors: {e}')
+        exit(1)
+
+    file_out = open(args.filepath, 'w')
+
+    for entry in _data_list:
+        field_parts = entry.split(' ')
+        modified_entry = f'{field_parts[0]} 0.000000 {" ".join(field_parts[2:])}\n'
+        if modified_entry != ' 0.000000 \n':
+            file_out.write(modified_entry)
+
+    file_out.close()
+
+
+if __name__ == '__main__':
+    main()
+
