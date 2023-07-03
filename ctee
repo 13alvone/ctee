@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+set -x
+# User Configs
+age_out_days=7
+age_out_count=20
 
 if [ "$(id -u)" = "0" ]; then
     echo "[x] This script should not be started with with SUDO but will request it for a few subcommands.." >&2
@@ -18,10 +22,12 @@ function cleanup {
   rm -f "$output_dir/ctee.pid" # remove pid file when script ends
 
   # Remove files older than 7 days
-  find "$output_dir" -name "cli_record_*" -mtime +7 -exec rm {} \;
+  find "$output_dir" -name "cli_record_*" -mtime +$age_out_days -exec rm {} \;
+  find "$output_dir" -name "cli_timer_*" -mtime +$age_out_days -exec rm {} \;
 
-  # If there are more than 20 files, delete the oldest
-  (ls -t1 "$output_dir/cli_record_"* | head -n 20; ls "$output_dir/cli_record_"*) | sort | uniq -u | xargs -I {} rm -f -- {}
+  # If there are more than 'age_out_count' files, delete the oldest
+  (ls -f -t1 $output_dir"cli_record_"* 2>/dev/null | head -n $age_out_count; ls -f $output_dir"cli_record_"* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
+  (ls -f -t1 $output_dir"cli_timer_"* 2>/dev/null | head -n $age_out_count; ls -f $output_dir"cli_timer_"* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
 
   exit 0
 }
@@ -31,18 +37,8 @@ trap cleanup EXIT INT QUIT TERM HUP
 
 # Generate a timestamp for unique filename
 timestamp=$(date +%Y%m%d%H%M%S)
-
-# Prompt the user for the recording filename if not provided
-if [ -z "$1" ]
-then
-    filename="cli_record_$timestamp"
-else
-    filename=$1
-    if [ -f "$output_dir$filename" ]; then
-        echo "Error: File $output_dir$filename already exists."
-        exit 1
-    fi
-fi
+filename="cli_record_$timestamp"
+tfilename="cli_timer_$timestamp"
 
 # Check if the 'script' utility is installed and accessible
 if ! command -v script &> /dev/null
@@ -65,6 +61,8 @@ echo $$ > "$output_dir/ctee.pid"
 
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
-script -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
+script --timing=$output_dir$tfilename -m advanced -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 
+echo "Recording timing in $output_dir$tfilename"
 echo "Recording saved in $output_dir$filename"
+
