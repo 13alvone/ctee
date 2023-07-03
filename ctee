@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x
+
 # User Configs
 age_out_days=7
 age_out_count=20
