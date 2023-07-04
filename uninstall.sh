@@ -20,11 +20,7 @@ if [[ -f "$db_file" ]]; then
         sudo chown -R root:root "$backup_file"
         sudo chmod -R 755 "$backup_file"
         echo "[+] Backup file was created successfully: $backup_file"
-    else
-        exit 1
     fi
-else
-    exit 1
 fi
 
 echo "[i] Requesting SUDO to remove binary in production: /usr/local/bin/ and $HOME/.ctee/ directories.\n"
@@ -37,4 +33,4 @@ sudo rm -rf /usr/local/bin/cxrmclear
 echo "[+] Removed the following components successfully and fully uninstalled CTEE:"
 echo "\n\t[-] Removed: $HOME/.ctee/\n\t[-] Removed: /usr/local/bin/ctee"
 echo "\n\t[-] Removed: /usr/local/bin/cxwrite\n\t[-] Removed: /usr/local/bin/cxrun"
-echo "\n\t[-] Removed: /usr/local/bin/cxtiming\n""
+echo "\n\t[-] Removed: /usr/local/bin/cxtiming\n"
