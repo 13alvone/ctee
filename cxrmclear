@@ -8,7 +8,7 @@ import os
 
 try:
     with open(os.path.expanduser('~/.ctee/ctee_cache'), 'r') as file_in:
-        default_target = file_in.read().split(':')[0].replace('\n', '')
+        default_target = file_in.read().split(':')[-1].replace('\n', '')
     file_in.close()
 
 except Exception as e:
@@ -38,23 +38,29 @@ def replace_control_sequences(file_name=None):
     bell_sequence = re.compile(r'\x07')
     sequence_2004h = re.compile(r'\x1b\[\?2004h')
     sequence_2004l = re.compile(r'\x1b\[\?2004l')
+    sequence_dc1 = re.compile(r'\x11')
+    sequence_3j = re.compile(r'\x1b\[3J')
+    sequence_k = re.compile(r'\x1b\[K')
 
     # Replace the sequences with corresponding directives
     content_with_newlines = clear_sequence.sub(lambda match: '\n' + ' '*(len(match.group(0))-1), content)
     content_no_bell = bell_sequence.sub('\x11', content_with_newlines)
     content_no_2004h = sequence_2004h.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_bell)
     content_no_2004l = sequence_2004l.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_2004h)
+    content_no_dc1 = sequence_dc1.sub('\x11', content_no_2004l)
+    content_no_3j = sequence_3j.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_dc1)
+    content_no_k = sequence_k.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_3j)
 
     if file_name is not None:
         try:
             # Write the content back to the file
             with open(file_name, 'w') as f:
-                f.write(content_no_2004l)
+                f.write(content_no_k)
         except IOError as e:
             print(f"Error writing to file: {e}")
     else:
         # Print to stdout
-        print(content_no_2004l)
+        print(content_no_k)
 
 
 def main():
