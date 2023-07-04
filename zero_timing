@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 
-import os
+import re
 import argparse
 
 args = None
+coeff = 50
 
 
 def get_args():
     parser = argparse.ArgumentParser()
+    coeff_msg = 'The Coefficient to scale the timing down by.'
     parser.add_argument('-f', '--filepath', help='Target Filepath', type=str, required=True)
+    parser.add_argument('-c', '--coeff', help=coeff_msg, type=int, default=None)
     return parser.parse_args()
 
 
 def main():
-    global args
+    global args, coeff
     args = get_args()
     file_in = open(args.filepath, 'rb')
     _data = file_in.read()
     file_in.close()
+
+    coeff = args.coeff if args.coeff else coeff
 
     try:
         _data_list = _data.decode(errors='ignore').split('\n')
@@ -29,13 +34,21 @@ def main():
 
     for entry in _data_list:
         field_parts = entry.split(' ')
-        modified_entry = f'{field_parts[0]} 0.000000 {" ".join(field_parts[2:])}\n'
-        if modified_entry != ' 0.000000 \n':
+
+        try:
+            modified_time = "{:.6f}".format(float(field_parts[1]) / coeff)
+        except:
+            modified_time = '0.000000'
+        modified_entry = f'{field_parts[0]} {modified_time} {" ".join(field_parts[2:])}\n'
+
+        if not re.search(r'\s(-?\d+\.\d{6})\s\n', modified_entry):
             file_out.write(modified_entry)
 
     file_out.close()
 
-    print(f'[+] Successfully converted the following timing to be instantaneous:\n\t{args.filepath}')
+    result = f'1/{coeff}' if coeff >= 1 else f'{round(1/coeff, 2)}'
+    print(f'[+] Successfully modified the time by a factor of ({result}):\n\t{args.filepath}\n')
+    print(f'[+] Now rerunning the script to stdout at `{result}` the original speed.\n')
 
 
 if __name__ == '__main__':
