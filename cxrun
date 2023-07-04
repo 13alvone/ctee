@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Define the path to the cache file
+cache_file="$HOME/.ctee/ctee_cache"
+
+# Check if the cache file exists
+if [[ ! -f "$cache_file" ]]; then
+  echo "Cache file does not exist: $cache_file"
+  exit 1
+fi
+
+# Read the last line of the file
+last_line=$(tail -n 1 "$cache_file")
+
+# Split the line into record and timer paths
+IFS=":" read -r record_file timer_file <<< "$last_line"
+
+# Check if the record and timer files exist
+if [[ ! -f "$record_file" ]]; then
+  echo "Record file does not exist: $record_file"
+  exit 1
+fi
+if [[ ! -f "$timer_file" ]]; then
+  echo "Timer file does not exist: $timer_file"
+  exit 1
+fi
+
+# Run scriptreplay with the record and timer files
+scriptreplay -t "$timer_file" -B "$record_file"
+
