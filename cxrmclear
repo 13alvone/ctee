@@ -8,7 +8,7 @@ import os
 
 try:
     with open(os.path.expanduser('~/.ctee/ctee_cache'), 'r') as file_in:
-        default_target = file_in.read().split(':')[-1].replace('\n', '')
+        default_target = file_in.read().split(':')[0].replace('\n', '')
     file_in.close()
 
 except Exception as e:
