@@ -19,7 +19,7 @@ except Exception as e:
 def replace_control_sequences(file_name=None):
     # Use stdin if no file is given
     if file_name is None:
-        content = sys.stdin.read()
+        content = sys.stdin.buffer.read()
     else:
         # Check if file exists
         if not Path(file_name).is_file():
@@ -27,40 +27,46 @@ def replace_control_sequences(file_name=None):
             return
 
         try:
-            with open(file_name, 'r') as f:
+            with open(file_name, 'rb') as f:
                 content = f.read()
         except IOError as e:
             print(f"Error reading file: {e}")
             return
 
     # Escape sequences
-    clear_sequence = re.compile(r'\x1b\[2J|\x1b\[H\x1b\[2J')
-    bell_sequence = re.compile(r'\x07')
-    sequence_2004h = re.compile(r'\x1b\[\?2004h')
-    sequence_2004l = re.compile(r'\x1b\[\?2004l')
-    sequence_dc1 = re.compile(r'\x11')
-    sequence_3j = re.compile(r'\x1b\[3J')
-    sequence_k = re.compile(r'\x1b\[K')
+    clear_sequence = re.compile(b'\x1b\[2J|\x1b\[H\x1b\[2J')
+    bell_sequence = re.compile(b'\x07')
+    sequence_2004h = re.compile(b'\x1b\[\?2004h')
+    sequence_2004l = re.compile(b'\x1b\[\?2004l')
+    sequence_dc1 = re.compile(b'\x11')
+    sequence_3j = re.compile(b'\x1b\[3J')
+    sequence_k = re.compile(b'\x1b\[K')
 
     # Replace the sequences with corresponding directives
-    content_with_newlines = clear_sequence.sub(lambda match: '\n' + ' '*(len(match.group(0))-1), content)
-    content_no_bell = bell_sequence.sub('\x11', content_with_newlines)
-    content_no_2004h = sequence_2004h.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_bell)
-    content_no_2004l = sequence_2004l.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_2004h)
-    content_no_dc1 = sequence_dc1.sub('\x11', content_no_2004l)
-    content_no_3j = sequence_3j.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_dc1)
-    content_no_k = sequence_k.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_3j)
+    content_with_newlines = clear_sequence.sub(lambda match: b'\n' + b' '*(len(match.group(0))-1), content)
+    content_no_bell = bell_sequence.sub(b'\x11', content_with_newlines)
+    content_no_2004h = sequence_2004h.sub(lambda match: b'\x11'*len(match.group(0)), content_no_bell)
+    content_no_2004l = sequence_2004l.sub(lambda match: b'\x11'*len(match.group(0)), content_no_2004h)
+    content_no_dc1 = sequence_dc1.sub(b'\x11', content_no_2004l)
+    content_no_3j = sequence_3j.sub(lambda match: b'\x11'*len(match.group(0)), content_no_dc1)
+    content_no_k = sequence_k.sub(lambda match: b'\x11'*len(match.group(0)), content_no_3j)
+
+    # Remove non-UTF-8 sequences
+    content_no_nonutf8 = re.sub(b'[^\x00-\x7F]+', lambda match: b'\x11'*len(match.group(0)), content_no_k)
 
     if file_name is not None:
         try:
             # Write the content back to the file
-            with open(file_name, 'w') as f:
-                f.write(content_no_k)
+            with open(file_name, 'wb') as f:
+                f.write(content_no_nonutf8)
         except IOError as e:
             print(f"Error writing to file: {e}")
     else:
         # Print to stdout
-        print(content_no_k)
+        try:
+            print(content_no_nonutf8.decode("utf-8"))
+        except UnicodeDecodeError:
+            print("Error decoding the result as UTF-8")
 
 
 def main():
