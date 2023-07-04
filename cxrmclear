@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+import re
+import argparse
+from pathlib import Path
+import sys
+import os
+
+try:
+    with open(os.path.expanduser('~/.ctee/ctee_cache'), 'r') as file_in:
+        default_target = file_in.read().split(':')[-1].replace('\n', '')
+    file_in.close()
+
+except Exception as e:
+    print(f'[!] cxrmclear is unable to find `~/.ctee/ctee_cache`.\n\tError: `{e}`\n\tExiting...')
+    exit(1)
+
+
+def replace_control_sequences(file_name=None):
+    # Use stdin if no file is given
+    if file_name is None:
+        content = sys.stdin.read()
+    else:
+        # Check if file exists
+        if not Path(file_name).is_file():
+            print(f"[-] File does not exist: {file_name}")
+            return
+
+        try:
+            with open(file_name, 'r') as f:
+                content = f.read()
+        except IOError as e:
+            print(f"Error reading file: {e}")
+            return
+
+    # Escape sequences
+    clear_sequence = re.compile(r'\x1b\[2J|\x1b\[H\x1b\[2J')
+    bell_sequence = re.compile(r'\x07')
+    sequence_2004h = re.compile(r'\x1b\[\?2004h')
+    sequence_2004l = re.compile(r'\x1b\[\?2004l')
+
+    # Replace the sequences with corresponding directives
+    content_with_newlines = clear_sequence.sub(lambda match: '\n' + ' '*(len(match.group(0))-1), content)
+    content_no_bell = bell_sequence.sub('\x11', content_with_newlines)
+    content_no_2004h = sequence_2004h.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_bell)
+    content_no_2004l = sequence_2004l.sub(lambda match: '\x11'*len(match.group(0).encode()), content_no_2004h)
+
+    if file_name is not None:
+        try:
+            # Write the content back to the file
+            with open(file_name, 'w') as f:
+                f.write(content_no_2004l)
+        except IOError as e:
+            print(f"Error writing to file: {e}")
+    else:
+        # Print to stdout
+        print(content_no_2004l)
+
+
+def main():
+    global default_target
+    parser = argparse.ArgumentParser(description="Replace control sequences in script log file with appropriate directives")
+    parser.add_argument('-f', '--file', help="Path to the script log file", default=default_target)
+    args = parser.parse_args()
+
+    replace_control_sequences(args.file)
+
+
+if __name__ == "__main__":
+    main()
+

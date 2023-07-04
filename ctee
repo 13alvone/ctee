@@ -74,6 +74,8 @@ echo "$output_dir$filename:$output_dir$tfilename" > $output_cache_path
 echo "[+] Most Recent CLI Recording Files stored here:"
 echo "    $output_cache_path"
 
-zero_timing -f "$output_dir$tfilename"
+cxtiming -f "$output_dir$tfilename" -n 2
+cxrmclear
 
-scriptreplay -t "$output_dir$tfilename" -B $output_dir$filename | tee ./$filename"_HISTORY_PARSED"
+# Optional automatic replay, disabled by default because it can be run by 'cxrun' now.
+# scriptreplay -t "$output_dir$tfilename" -B $output_dir$filename

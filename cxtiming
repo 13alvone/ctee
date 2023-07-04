@@ -10,8 +10,11 @@ coeff = 50
 def get_args():
     parser = argparse.ArgumentParser()
     coeff_msg = 'The Coefficient to scale the timing down by.'
+    norm_msg = 'Set the int value to a set number for every action, but keep the decimal part.'
     parser.add_argument('-f', '--filepath', help='Target Filepath', type=str, required=True)
     parser.add_argument('-c', '--coeff', help=coeff_msg, type=int, default=None)
+    parser.add_argument('-n', '--normalize', help=norm_msg, type=int, default=None)
+
     return parser.parse_args()
 
 
@@ -37,6 +40,10 @@ def main():
 
         try:
             modified_time = "{:.6f}".format(float(field_parts[1]) / coeff)
+            if args.normalize:
+                modified_time = f"0.{modified_time.split('.')[-1]}"
+                modified_time = "{:.6f}".float(float(modified_time) + args.normalize)
+                print(f'[i] Script replay speed normalized to `{args.normalize}` seconds.')
         except:
             modified_time = '0.000000'
         modified_entry = f'{field_parts[0]} {modified_time} {" ".join(field_parts[2:])}\n'
