@@ -17,7 +17,8 @@ script_dir=$(dirname "$0")
 
 # Function to cleanup temp files and remove pid file
 function cleanup {
-  echo "Cleaning up..."
+  echo ""
+  echo "    [i] Cleaning up..."
   rm -f "$temp_bashrc"
   rm -f "$output_dir/ctee.pid" # remove pid file when script ends
 

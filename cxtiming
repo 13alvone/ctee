@@ -54,7 +54,7 @@ def main():
     file_out.close()
 
     result = f'1/{coeff}' if coeff >= 1 else f'{round(1/coeff, 2)}'
-    print(f'[+] Successfully modified the time by a factor of ({result}):\n\t{args.filepath}\n')
+    print(f'[+] Successfully modified the replay time by a factor of ({result}).\n')
     print(f'[+] Now rerunning the script to stdout at `{result}` the original speed.\n')
 
 
