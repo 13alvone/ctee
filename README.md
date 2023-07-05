@@ -4,17 +4,17 @@ CTEE is a powerful suite of tools designed to enhance your experience with the c
 
 Here's a brief overview of each component:
 
-1. **ctee**: This is the main script that sets up the CTEE environment. It handles tasks like creating necessary directories, starting a new session, recording the session, and cleaning up when the session ends.
+1. `ctee`: This is the main script that sets up the CTEE environment. It handles tasks like creating necessary directories, starting a new session, recording the session, and cleaning up when the session ends.
 
-2. **cxrmclear**: This script sanitizes the output of the recorded sessions by removing control characters and handling backspaces.
+2. `cxrmclear`: This script sanitizes the output of the recorded sessions by removing control characters and handling backspaces.
 
-3. **cxtiming**: This Python script modifies the timing of a previously recorded script, either by scaling the timing down by a certain coefficient or normalizing it to a fixed interval.
+3. `cxtiming`: This Python script modifies the timing of a previously recorded script, either by scaling the timing down by a certain coefficient or normalizing it to a fixed interval.
 
-4. **cxwrite**: This Python script allows users to write notes about their CLI activities, which are then stored in an SQLite database.
+4. `cxwrite`: This Python script allows users to write notes about their CLI activities, which are then stored in an SQLite database.
 
-5. **install.sh**: This shell script handles the installation process for the CTEE environment. It ensures that the necessary files are copied to the correct locations and that permissions are correctly set.
+5. `install.sh`: This shell script handles the installation process for the CTEE environment. It ensures that the necessary files are copied to the correct locations and that permissions are correctly set.
 
-6. **uninstall.zsh**: This Zsh script cleanly uninstalls the CTEE environment and its associated tools. It also backs up the SQLite database containing the user's notes to the `/tmp` directory.
+6. `uninstall.zsh`: This Zsh script cleanly uninstalls the CTEE environment and its associated tools. It also backs up the SQLite database containing the user's notes to the `/tmp` directory.
 
 ---
 
