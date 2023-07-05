@@ -1,83 +1,66 @@
 #!/usr/bin/env python3
 
-import re
 import argparse
-from pathlib import Path
+import re
 import sys
 import os
 
-try:
-    with open(os.path.expanduser('~/.ctee/ctee_cache'), 'r') as file_in:
-        default_target = file_in.read().split(':')[-1].replace('\n', '')
-    file_in.close()
 
-except Exception as e:
-    print(f'[!] cxrmclear is unable to find `~/.ctee/ctee_cache`.\n\tError: `{e}`\n\tExiting...')
-    exit(1)
-
-
-def replace_control_sequences(file_name=None):
-    # Use stdin if no file is given
-    if file_name is None:
-        content = sys.stdin.buffer.read()
-    else:
-        # Check if file exists
-        if not Path(file_name).is_file():
-            print(f"[-] File does not exist: {file_name}")
-            return
-
-        try:
-            with open(file_name, 'rb') as f:
-                content = f.read()
-        except IOError as e:
-            print(f"Error reading file: {e}")
-            return
-
-    # Escape sequences
-    clear_sequence = re.compile(b'\x1b\[2J|\x1b\[H\x1b\[2J')
-    bell_sequence = re.compile(b'\x07')
-    sequence_2004h = re.compile(b'\x1b\[\?2004h')
-    sequence_2004l = re.compile(b'\x1b\[\?2004l')
-    sequence_dc1 = re.compile(b'\x11')
-    sequence_3j = re.compile(b'\x1b\[3J')
-    sequence_k = re.compile(b'\x1b\[K')
-
-    # Replace the sequences with corresponding directives
-    content_with_newlines = clear_sequence.sub(lambda match: b'\n' + b' '*(len(match.group(0))-1), content)
-    content_no_bell = bell_sequence.sub(b'\x11', content_with_newlines)
-    content_no_2004h = sequence_2004h.sub(lambda match: b'\x11'*len(match.group(0)), content_no_bell)
-    content_no_2004l = sequence_2004l.sub(lambda match: b'\x11'*len(match.group(0)), content_no_2004h)
-    content_no_dc1 = sequence_dc1.sub(b'\x11', content_no_2004l)
-    content_no_3j = sequence_3j.sub(lambda match: b'\x11'*len(match.group(0)), content_no_dc1)
-    content_no_k = sequence_k.sub(lambda match: b'\x11'*len(match.group(0)), content_no_3j)
-
-    # Remove non-UTF-8 sequences
-    content_no_nonutf8 = re.sub(b'[^\x00-\x7F]+', lambda match: b'\x11'*len(match.group(0)), content_no_k)
-
-    if file_name is not None:
-        try:
-            # Write the content back to the file
-            with open(file_name, 'wb') as f:
-                f.write(content_no_nonutf8)
-        except IOError as e:
-            print(f"Error writing to file: {e}")
-    else:
-        # Print to stdout
-        try:
-            print(content_no_nonutf8.decode("utf-8"))
-        except UnicodeDecodeError:
-            print("Error decoding the result as UTF-8")
+def remove_control_bytes(b):
+    control_bytes = [
+        rb'\x1b\[\?\d*[hl]',            # CSI ? Pm h (DEC Private Mode Set)
+        rb'\x1b\[\d*(;\d*)*[A-Za-z]',   # ANSI escape sequence
+        rb'\x07',                       # Bell/beep
+        rb'\x09',                       # Tab
+        rb'\x0d',                       # Carriage return
+    ]
+    return re.sub(b'|'.join(control_bytes), b'', b)
 
 
-def main():
-    global default_target
-    parser = argparse.ArgumentParser(description="Replace control sequences in script log file with appropriate directives")
-    parser.add_argument('-f', '--file', help="Path to the script log file", default=default_target)
+def handle_backspace(b):
+    backspace_index = 0
+    while True:
+        backspace_index = b.find(b'\x08', backspace_index)
+        if backspace_index == -1:
+            break
+        # Don't delete anything if backspace is the first character
+        if backspace_index != 0:
+            b = b[:backspace_index-1] + b[backspace_index+1:]
+        else:
+            b = b[1:]
+        backspace_index -= 1
+    return b
+
+
+def process_file(filename):
+    if not os.path.isfile(filename):
+        print(f"[!] cxrmclear Error: {filename} does not exist.")
+        sys.exit(1)
+
+    try:
+        with open(filename, 'rb') as file:
+            content = file.read()
+    except Exception as e:
+        print(f"[!] cxrmclear Error reading file: {e}")
+        sys.exit(1)
+
+    sanitized_content = remove_control_bytes(content)
+    sanitized_content = handle_backspace(sanitized_content)
+
+    try:
+        with open(filename, 'wb') as file:
+            file.write(sanitized_content)
+    except Exception as e:
+        print(f"[!] cxrmclear Error writing file: {e}")
+        sys.exit(1)
+
+    print(f"[+] Successfully sanitized '{filename}'")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Sanitize script replay files')
+    parser.add_argument('filename', help='The path of the script replay file to sanitize')
     args = parser.parse_args()
 
-    replace_control_sequences(args.file)
-
-
-if __name__ == "__main__":
-    main()
+    process_file(args.filename)
 

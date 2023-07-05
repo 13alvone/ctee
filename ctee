@@ -77,5 +77,3 @@ echo "    $output_cache_path"
 cxtiming -f "$output_dir$tfilename" -n 2
 cxrmclear
 
-# Optional automatic replay, disabled by default because it can be run by 'cxrun' now.
-# scriptreplay -t "$output_dir$tfilename" -B $output_dir$filename
