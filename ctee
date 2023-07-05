@@ -50,7 +50,6 @@ fi
 # Create a temporary bashrc file
 temp_bashrc=$(mktemp)
 
-echo "export TMOUT=86400; readonly TMOUT" >> "$temp_bashrc" # Set a 24 hour timeout
 cat $HOME/.ctee/etc/bashrc.ctee >> "$temp_bashrc"
 
 # Create the target directory if it doesn't already exist
@@ -64,12 +63,11 @@ output_cache_path=$output_dir"ctee_cache"
 # The --rcfile option ensures the temporary bashrc file is loaded
 script --timing=$output_dir$tfilename -m advanced -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
 
-echo "Recording timing in $output_dir$tfilename"
-echo "Recording saved in $output_dir$filename"
 echo ""
 echo "[+] CLI Recording File : CLI Recording Timer File"
 echo "    $output_dir$filename:$output_dir$tfilename"
 echo "$output_dir$filename:$output_dir$tfilename" > $output_cache_path
+echo ""
 echo "[+] Most Recent CLI Recording Files stored here:"
 echo "    $output_cache_path"
 echo ""

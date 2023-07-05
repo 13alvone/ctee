@@ -38,4 +38,5 @@ echo "    [x] REMOVED: /usr/local/bin/cxwrite"
 echo "    [x] REMOVED: /usr/local/bin/cxrun"
 echo "    [x] REMOVED: /usr/local/bin/cxtiming"
 echo "    [x] REMOVED: /usr/local/bin/cxrmclear"
+echo ""
 
