@@ -1,6 +1,6 @@
 # CTEE: Command Line Interface (CLI) Recording and Note-Taking Tool
 
-CTEE is a powerful suite of tools designed to enhance your experience with the command-line interface. It allows you to record and replay your CLI sessions, take and store notes related to your CLI activities, manipulate the timing of your replayed sessions, and perform other related tasks. CTEE consists of several interconnected scripts and utilities working together to provide an efficient and user-friendly way to handle command-line activities.
+> CTEE is a powerful suite of tools designed to enhance your experience with the command-line interface. It allows you to record and replay your CLI sessions, take and store notes related to your CLI activities, manipulate the timing of your replayed sessions, and perform other related tasks. CTEE consists of several interconnected scripts and utilities working together to provide an efficient and user-friendly way to handle command-line activities.
 
 Here's a brief overview of each component:
 
