@@ -1,58 +1,80 @@
-# CTEE
-CTEE is a Linux Only bash script that records all subsequent Bash activity in a given shell. The script uses the Linux `script` utility to save all terminal output to a file, which can be useful for logging, debugging, or sharing previous terminal sessions.
+# CTEE: Command Line Interface (CLI) Recording and Note-Taking Tool
 
-## Requirements
+CTEE is a powerful suite of tools designed to enhance your experience with the command-line interface. It allows you to record and replay your CLI sessions, take and store notes related to your CLI activities, manipulate the timing of your replayed sessions, and perform other related tasks. CTEE consists of several interconnected scripts and utilities working together to provide an efficient and user-friendly way to handle command-line activities.
 
-The script should run on any Linux system which includes the `script` utility. This includes most mainstream distributions such as Ubuntu, CentOS, Fedora and others.
+Here's a brief overview of each component:
 
-## Usage
+1. **ctee**: This is the main script that sets up the CTEE environment. It handles tasks like creating necessary directories, starting a new session, recording the session, and cleaning up when the session ends.
 
-1. Clone this repository or download the script to your local machine and run the `install.sh` script.
+2. **cxrmclear**: This script sanitizes the output of the recorded sessions by removing control characters and handling backspaces.
 
-    ```
-    git clone https://github.com/13alvone/ctee.git && cd ctee && sudo ./install.sh
-    ```
+3. **cxtiming**: This Python script modifies the timing of a previously recorded script, either by scaling the timing down by a certain coefficient or normalizing it to a fixed interval.
 
-2. You can now call ctee from anywhere you happen to be in the filesystem so that the bash recording begins upon entry:
+4. **cxwrite**: This Python script allows users to write notes about their CLI activities, which are then stored in an SQLite database.
 
-    ```
-    $ pwd
-    /home/<user>
-    $ ctee
-    CTEE [REC] $ echo "Quick Demonstration."
-    Quick Demonstration.
-    CTEE [REC] $ exit
-    exit
-    Recording saved in /home/<user>/.ctee/cli_record_20230630231818
-    $ cat /home/<user>/.ctee/cli_record_20230630231818
-    Script started on 2023-06-15 23:18:18-07:00 [COMMAND="bash --rcfile /tmp/tmp.O9AdxLXW3b" TERM="xterm-256color" TTY="/dev/pts/11" COLUMNS="136" LINES="41"]
-    CTEE [REC] $ echo "Quick Demonstration."
-    Quick Demonstration.
-    CTEE [REC] $ exit
-    exit
-    
-    Script done on 2023-06-15 23:18:42-07:00 [COMMAND_EXIT_CODE="0"]
-    $ 
-    ```
+5. **install.sh**: This shell script handles the installation process for the CTEE environment. It ensures that the necessary files are copied to the correct locations and that permissions are correctly set.
 
-3. After running the script, your command prompt will change to include the prefix `CTEE [REC] $ `. This indicates that your terminal session is currently being recorded to a plaintext log file written to your ~/.ctee/ directory for each session.
+6. **uninstall.zsh**: This Zsh script cleanly uninstalls the CTEE environment and its associated tools. It also backs up the SQLite database containing the user's notes to the `/tmp` directory.
 
-4. To stop recording, use the `stop_recording` command or the normal shell `exit` command to achieve closing and exiting the recording shell/process.
+---
 
-## Caveats
+## How to Use CTEE
 
-> This script creates a new bash session when you start recording. Any environment variables or settings from your previous session will not be carried over, though there are a few specialized ones that I do update from time to time. The following are installed in the new bash environment when `ctee` is called:
+Start by installing CTEE by running the `install.sh` script as a standard, non-root, non-sudo user. This places the necessary scripts and binaries in `/usr/local/bin` and creates the `~/.ctee/` directory where CTEE stores its data:
 
-> Defines the new visual prompt
-1. PS1='CTEE [REC] \$ '
+	./install.sh
 
-> Defined the unique `stop_recording` command here, but remember that `exit` works as well:
-2. alias stop_recording='echo Recording Ended; exit'
+To start a new session, simply run `ctee` from the command line from anywhere:
 
-> Added optional alias for cspeakes_enumerator. Not default installed, but works if so.
-3. alias target="/usr/local/bin/create_target.sh"
+	ctee
+
+This begins a new recording session where your activities in the CLI are recorded. You can perform any actions in this session, just like in a normal shell.
+
+To take notes related to your activities, use the `cxwrite` command:
+
+	cxwrite "This is a note about my CLI activity."
+
+These notes are stored in an SQLite database and can be queried later.
+
+To replay a previously recorded session, use the `cxrun` command:
+
+	cxrun
+
+This plays back your CLI actions, letting you see exactly what you did in a previous session.
+
+To modify the timing of a replayed session, use the `cxtiming` command:
+
+	cxtiming -f path/to/script -c 10
+
+This reduces the time between actions in the replayed script by a factor of 10, making the replay go 10 times faster.
+
+To sanitize a recorded script file, use the `cxrmclear` command:
+
+	cxrmclear -f path/to/script
+
+This removes control characters and handles backspaces in the recorded script file, making it cleaner and easier to read.
+
+When you're done with CTEE, you can cleanly uninstall it by running the `uninstall.zsh` script:
+
+	./uninstall.zsh
+
+This removes all CTEE components and backs up your notes database to `/tmp`.
+
+
+## CTEE Home Directory 
+    The home directory can be found here: ~/.ctee/
+> This directory contains all recorded sessions, but there is a cleanup function that runs each time ctee is called, removing any recordings that are either older than 7 days, or when the count of recorded sessions exceeds 20. This is done as a general safety feature, to ensure OLD sessions that you forgot are no longer sitting around with sensitive data. Generally, there is no need to access these files because the 'cxrun' CLI command will run the most recently recorded CLI event in plaintext and free of extraneous control sequences that don't print to stdout, as long as it is younger than 7 days, and NOT the victim of a standard cleanout function due to exceeding the ctee session log count in the ctee home directory.
+
+---
+
+CTEE is a powerful tool for any user who frequently works with the command-line interface. It allows you to record your activities, replay them, adjust their timing, and even take notes about what you're doing. This makes CTEE a useful tool for learning, teaching, troubleshooting, and documenting your CLI activities.
+
+---
+
+## Optional Considerations (For My Fellow Pentesters)
 
 > If you are doing any pentesting and need a decently robust, but quick enumeration script that works well within `ctee`, feel free to use this installer on your Kali machine AND install `ctee` as well (Order of installation does not matter).
 [Get & Install Cspeakes Enumerator](https://github.com/13alvone/cspeakes_enumerator)
 
 Please use this tool responsibly and ensure that any recorded sessions do not contain sensitive information such as passwords or personal data as this WILL be stored in your `~/.ctee/` directory files in CLEARTEXT.
+
