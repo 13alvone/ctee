@@ -5,6 +5,8 @@ import re
 import sys
 import os
 
+default_target = ''
+
 
 def remove_control_bytes(b):
     control_bytes = [
@@ -58,8 +60,20 @@ def process_file(filename):
 
 
 if __name__ == '__main__':
+
+    default_target = ''
+    
+    try:
+        with open(os.path.expanduser('~/.ctee/ctee_cache'), 'r') as file_in:
+            default_target = file_in.read().split(':')[-1].replace('\n', '')
+        file_in.close()
+
+    except Exception as e:
+        print(f'[!] cxrmclear is unable to find `~/.ctee/ctee_cache`.\n\tError: `{e}`\n\tExiting...')
+        exit(1)
+    
     parser = argparse.ArgumentParser(description='Sanitize script replay files')
-    parser.add_argument('filename', help='The path of the script replay file to sanitize')
+    parser.add_argument('-f', '--filename', help='The path of the script replay file to sanitize', default=default_target)
     args = parser.parse_args()
 
     process_file(args.filename)
