@@ -15,16 +15,23 @@ last_line=$(tail -n 1 "$cache_file")
 # Split the line into record and timer paths
 IFS=":" read -r record_file timer_file <<< "$last_line"
 
-# Check if the record and timer files exist
+# Check if the record file exists
 if [[ ! -f "$record_file" ]]; then
   echo "Record file does not exist: $record_file"
   exit 1
 fi
-if [[ ! -f "$timer_file" ]]; then
-  echo "Timer file does not exist: $timer_file"
-  exit 1
-fi
 
-# Run scriptreplay with the record and timer files
-scriptreplay -t "$timer_file" -B "$record_file"
+OS="$(uname)"
+if [[ "$OS" == "Darwin" ]]; then
+    source_group="staff"
+    cat $record_file
+elif [[ "$OS" == "Linux" ]]; then
+    # Check if the timer file exists
+    if [[ ! -f "$timer_file" ]]; then
+      echo "Timer file does not exist: $timer_file"
+      exit 1
+    fi
+    # Run scriptreplay with the record and timer files
+    scriptreplay -t "$timer_file" -B "$record_file"
+fi
 

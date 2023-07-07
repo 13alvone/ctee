@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 # User Configs
 age_out_days=7
 age_out_count=20
@@ -41,38 +41,80 @@ timestamp=$(date +%Y%m%d%H%M%S)
 filename="cli_record_$timestamp"
 tfilename="cli_timer_$timestamp"
 
-# Check if the 'script' utility is installed and accessible
+# Check if the script utility is installed and accessible
 if ! command -v script &> /dev/null
 then
     echo "The 'script' utility could not be found. Please install it and try again."
     exit 1
 fi
 
-# Create a temporary bashrc file
-temp_bashrc=$(mktemp)
+OS=$(uname -s)
+if [ "$OS" = "Linux" ]
+then
+  # Linux specific commands
+  # Check if the file exists
+  bashrc_content_file=$HOME/.ctee/etc/bashrc.ctee
+  if [[ -f "$bashrc_content_file" ]]; then
+      # Create a temporary bashrc file
+      temp_bashrc=$(mktemp)
+      cat "$bashrc_content_file" >> "$temp_bashrc"
+  else
+      echo "[!] Warning: '$bashrc_content_file' does not exist."
+      echo "    - If not installed previously, run 'install.sh' and try again..."
+      echo "    - If previously installed, run 'update.sh' script to attempt auto-fix..."
+      exit 1
 
-cat $HOME/.ctee/etc/bashrc.ctee >> "$temp_bashrc"
+  fi
+elif [ "$OS" = "Darwin" ]
+then
+  # macOS specific commands
+  echo "[i] MacOS Version Enabled."
+  if ! brew list | grep util-linux &>/dev/null; then
+    brew install util-linux
+  fi
+else
+  echo '[!] Ctee currently only operates on MacOS and Linux systems. Exiting...'
+  exit 1
+fi
 
 # Create the target directory if it doesn't already exist
 mkdir -p $output_dir
 
 # Write the pid to a file
-echo $$ > "$output_dir/ctee.pid"
+echo $$ > $output_dir"ctee.pid"
 output_cache_path=$output_dir"ctee_cache"
 
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
-script --timing=$output_dir$tfilename -m advanced -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
+echo $OS
+case $OS in
+  Darwin)
+    tfilename="NA_on_MacOS"
+    script -r -t 0 -a "$output_dir$filename"
+    echo ""
+    echo "[+] CLI Recording File:"
+    echo "$output_dir$filename"
+    echo ""
+    ;;
+  Linux)
+    script --timing="$output_dir$tfilename" -m advanced -a "$output_dir$filename" -q --command="bash --rcfile $temp_bashrc"
+    # Normalize the timing file of the resulting timing file
+    cxtiming -f "$output_dir$tfilename" -n 2
+    echo ""
+    echo "[+] CLI Recording File : CLI Recording Timer File"
+    echo "    $output_dir$filename:$output_dir$tfilename"
+    echo ""
+    ;;
+  *)
+    echo "[!] Ctee currently only operates on MacOS and Linux systems. Exiting..."
+    exit 1
+    ;;
+esac
 
-echo ""
-echo "[+] CLI Recording File : CLI Recording Timer File"
-echo "    $output_dir$filename:$output_dir$tfilename"
-echo "$output_dir$filename:$output_dir$tfilename" > $output_cache_path
-echo ""
-echo "[+] Most Recent CLI Recording Files stored here:"
-echo "    $output_cache_path"
-echo ""
+echo "$output_dir$filename"
+echo "$output_cache_path"
+echo "$output_dir$filename:$output_dir$tfilename" > "$output_cache_path"
 
-cxtiming -f "$output_dir$tfilename" -n 2
+# Remove any non-printable control sequences, simulate backspaces, and clear actions with no-ops.
 cxrmclear
 
