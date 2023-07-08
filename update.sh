@@ -18,6 +18,8 @@ else
     git clone https://github.com/13alvone/ctee.git
     cd $HOME/ctee
     ./install.sh
+    echo "[+] CTEE updated. Please run ctee again for updated version..."
+    exit 1
 fi
 
 cd $current_dir
