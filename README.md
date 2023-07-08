@@ -11,6 +11,8 @@
 
 CTEE is a powerful suite of tools designed to enhance your experience with the command-line interface on Linux and MacOS systems. It allows you to record and replay your CLI sessions, take and store notes related to your CLI activities, manipulate the timing of your replayed sessions, and perform other related tasks. CTEE consists of several interconnected scripts and utilities working together to provide an efficient and user-friendly way to handle command-line activities.
 
+![Example GIF](CTEE_Demo.gif)
+
 Here's a brief overview of each component:
 
 1. `ctee`: This is the main script that sets up the CTEE environment. It handles tasks like creating necessary directories, starting a new session, recording the session, and cleaning up when the session ends.
