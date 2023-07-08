@@ -63,9 +63,9 @@ To sanitize a recorded script file, use the `cxrmclear` command:
 
 This removes control characters and handles backspaces in the recorded script file, making it cleaner and easier to read.
 
-When you're done with CTEE, you can cleanly uninstall it by running the `uninstall.zsh` script:
+When you're done with CTEE, you can cleanly uninstall it by running the `uninstall.sh` script:
 
-	./uninstall.zsh
+	./uninstall.sh
 
 This removes all CTEE components and backs up your notes database to `/tmp`.
 
