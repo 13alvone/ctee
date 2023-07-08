@@ -23,10 +23,6 @@ fi
 # Set Current Directory as Starting Directory
 starting_dir=$(pwd)
 
-# Check for updates on each run and update if remote change detected
-echo "[i] Checking github for CTEE updates..."
-$HOME/.ctee/git/ctee/update.sh
-
 set -e # Exit on error
 
 # Define directory to save output files
