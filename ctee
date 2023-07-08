@@ -24,7 +24,7 @@ fi
 starting_dir=$(pwd)
 
 # Check for updates on each run and update if remote change detected
-$HOME/.ctee/git/update.sh
+$HOME/.ctee/git/ctee/update.sh
 
 set -e # Exit on error
 
