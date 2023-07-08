@@ -76,7 +76,10 @@ This removes all CTEE components and backs up your notes database to `/tmp`.
 
 ---
 
+## Considerations
 CTEE is a powerful tool for any user who frequently works with the command-line interface. It allows you to record your activities, replay them, adjust their timing, and even take notes about what you're doing. This makes CTEE a useful tool for learning, teaching, troubleshooting, and documenting your CLI activities.
+
+Please use this tool responsibly and ensure that any recorded sessions do not contain sensitive information such as passwords or personal data as this WILL be stored in your `~/.ctee/` directory files in CLEARTEXT.
 
 ---
 
@@ -85,5 +88,5 @@ CTEE is a powerful tool for any user who frequently works with the command-line 
 > If you are doing any pentesting and need a decently robust, but quick enumeration script that works well within `ctee`, feel free to use this installer on your Kali machine AND install `ctee` as well (Order of installation does not matter).
 [Get & Install Cspeakes Enumerator](https://github.com/13alvone/cspeakes_enumerator)
 
-Please use this tool responsibly and ensure that any recorded sessions do not contain sensitive information such as passwords or personal data as this WILL be stored in your `~/.ctee/` directory files in CLEARTEXT.
+
 
