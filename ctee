@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # User Configs
-age_out_days=7
+age_out_days=1
 age_out_count=20
 
 echo ""
@@ -19,6 +19,12 @@ if [ "$(id -u)" = "0" ]; then
     echo "[x] This script should not be started with with SUDO but will request it for a few subcommands.." >&2
     exit 1
 fi
+
+# Set Current Directory as Starting Directory
+starting_dir=$(pwd)
+
+# Check for updates on each run and update if remote change detected
+$HOME/.ctee/git/update.sh
 
 set -e # Exit on error
 
@@ -50,6 +56,7 @@ trap cleanup EXIT INT QUIT TERM HUP
 # Generate a timestamp for unique filename
 timestamp=$(date +%Y%m%d%H%M%S)
 filename="cli_record_$timestamp"
+ffilename="ctee_log_$timestamp"
 tfilename="cli_timer_$timestamp"
 
 # Check if the script utility is installed and accessible
@@ -125,6 +132,8 @@ echo "$output_dir$filename"
 echo "$output_cache_path"
 echo "$output_dir$filename:$output_dir$tfilename" > "$output_cache_path"
 
-# Remove any non-printable control sequences, simulate backspaces, and clear actions with no-ops.
+# Remove any non-printable control sequences, simulate backspaces, and clear actions with no-ops
 cxrmclear
 
+# Create a copy of the resulting logfile in the current working directory
+cp $output_dir$filename $starting_dir/$ffilename
