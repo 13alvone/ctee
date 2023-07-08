@@ -6,12 +6,8 @@
 ██║░░██╗░░░██║░░░██╔══╝░░██╔══╝░░
 ╚█████╔╝░░░██║░░░███████╗███████╗
 ░╚════╝░░░░╚═╝░░░╚══════╝╚══════╝
-
-
-█▀▀ █░░ █   █▀█ █▀▀ █▀▀ █▀█ █▀█ █▀▄ █▀▀ █▀█
-█▄▄ █▄▄ █   █▀▄ ██▄ █▄▄ █▄█ █▀▄ █▄▀ ██▄ █▀▄
 ```
-# CTEE Command Line Session Recorder
+# Command Line Session Recorder
 
 CTEE is a powerful suite of tools designed to enhance your experience with the command-line interface on Linux and MacOS systems. It allows you to record and replay your CLI sessions, take and store notes related to your CLI activities, manipulate the timing of your replayed sessions, and perform other related tasks. CTEE consists of several interconnected scripts and utilities working together to provide an efficient and user-friendly way to handle command-line activities.
 
@@ -27,7 +23,7 @@ Here's a brief overview of each component:
 
 5. `install.sh`: This shell script handles the installation process for the CTEE environment. It ensures that the necessary files are copied to the correct locations and that permissions are correctly set.
 
-6. `uninstall.zsh`: This Zsh script cleanly uninstalls the CTEE environment and its associated tools. It also backs up the SQLite database containing the user's notes to the `/tmp` directory.
+6. `uninstall.sh`: This shell script cleanly uninstalls the CTEE environment and its associated tools. It also backs up the SQLite database containing the user's notes to the `/tmp` directory.
 
 ---
 
