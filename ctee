@@ -29,6 +29,10 @@ set -e # Exit on error
 output_dir=$HOME/.ctee/
 script_dir=$(dirname "$0")
 
+# Handle optional argument for log filename
+log_filename=${1:-"ctee_log_$(date +%Y%m%d%H%M%S)"}
+echo "[i] Output Logfile: $starting_dir/$log_filename"
+
 # Function to cleanup temp files and remove pid file
 function cleanup {
   echo ""
@@ -133,4 +137,4 @@ echo "$output_dir$filename:$output_dir$tfilename" > "$output_cache_path"
 cxrmclear
 
 # Create a copy of the resulting logfile in the current working directory
-cp $output_dir$filename $starting_dir/$ffilename
+cp $output_dir$filename $starting_dir/$log_filename
