@@ -54,18 +54,26 @@ function cleanup {
 # Register the cleanup function to be called on the EXIT signal
 trap cleanup EXIT INT QUIT TERM HUP
 
-# Generate a timestamp for unique filename
-timestamp=$(date +%Y%m%d%H%M%S)
-filename="cli_record_$timestamp"
-ffilename="ctee_log_$timestamp"
-tfilename="cli_timer_$timestamp"
-
 # Check if the script utility is installed and accessible
 if ! command -v script &> /dev/null
 then
     echo "The 'script' utility could not be found. Please install it and try again."
     exit 1
 fi
+
+# Generate a timestamp for unique filename
+timestamp=$(date +%Y%m%d%H%M%S)
+filename="cli_record_$timestamp"
+ffilename="ctee_log_$timestamp"
+tfilename="cli_timer_$timestamp"
+
+# Create the target directory if it doesn't already exist
+mkdir -p $output_dir
+
+# Write the pid to a file
+echo $$ > $output_dir"ctee.pid"
+output_cache_path=$output_dir"ctee_cache"
+export CTEE_CURRENT_LOGFILE="$output_dir$filename"
 
 OS=$(uname -s)
 if [ "$OS" = "Linux" ]
@@ -76,6 +84,7 @@ then
       # Create a temporary bashrc file
       temp_bashrc=$(mktemp)
       cat "$bashrc_content_file" >> "$temp_bashrc"
+      echo 'export CTEE_CURRENT_LOGFILE="$CTEE_CURRENT_LOGFILE"' >> "$temp_bashrc"
   else
       echo "[!] Warning: '$bashrc_content_file' does not exist."
       echo "    - If not installed previously, run 'install.sh' and try again..."
@@ -95,16 +104,8 @@ else
   exit 1
 fi
 
-# Create the target directory if it doesn't already exist
-mkdir -p $output_dir
-
-# Write the pid to a file
-echo $$ > $output_dir"ctee.pid"
-output_cache_path=$output_dir"ctee_cache"
-
 # Start recording with the 'script' command
 # The --rcfile option ensures the temporary bashrc file is loaded
-echo $OS
 case $OS in
   Darwin)
     tfilename="NA_on_MacOS"
@@ -134,7 +135,8 @@ echo "$output_cache_path"
 echo "$output_dir$filename:$output_dir$tfilename" > "$output_cache_path"
 
 # Remove any non-printable control sequences, simulate backspaces, and clear actions with no-ops
-cxrmclear
+cxrmclear -f "$output_dir$filename"
 
 # Create a copy of the resulting logfile in the current working directory
 cp $output_dir$filename $starting_dir/$log_filename
+

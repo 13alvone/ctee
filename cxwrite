@@ -6,17 +6,36 @@ import glob
 import datetime
 import sqlite3
 import argparse
+import subprocess
 
-   
+default_log = os.environ.get('CTEE_CURRENT_LOGFILE')
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('notes', type=str, help='Your notes string.', default="N/A", nargs='?')
+    parser.add_argument('-n', '--line_numbers', type=int, help='Number of lines to print.', default=50)
+    parser.add_argument('-f', '--logfile', type=int, help='Optional Logfile.', required=False, default=default_log)
     return parser.parse_args()
+
+
+def get_current_history():
+    global args
+    # Execute the command, capture the stdout and stderr
+    cmd = f'cxrmclear -l -f "{args.logfile}"'
+    proc = subprocess.run(cmd, shell=True, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Returns STDOUT, STDERR
+    if proc.stdout:
+        return proc.stdout
+    
+    if proc.stderr:
+        return f'[!] STDERR: `{proc.stderr}`'
 
 
 def main():
     global args
-    
+
     ctee_dir = os.path.expanduser('~/.ctee/')
     ctee_pid_file = os.path.join(ctee_dir, 'ctee.pid')
 
@@ -29,14 +48,16 @@ def main():
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     database_path = os.path.join(ctee_dir, 'cxwrite_notes.db')
 
-    # Get the latest log file
-    list_of_files = glob.glob(ctee_dir + 'cli_record_*')
-    latest_file = max(list_of_files, key=os.path.getctime)
-
-    # Get the last 50 lines of latest log file
-    with open(latest_file, 'r') as f:
-        lines = f.readlines()
-    last_50_lines = ''.join(lines[-50:])  # join lines into a single string
+    if args.logfile:
+        full_history = get_current_history().split('\n')
+        last_n_lines = '\n'.join(full_history[len(full_history)-args.line_numbers:])
+    
+    else:    
+        ctee_current_logfile = os.environ.get('CTEE_CURRENT_LOGFILE')
+        # Get the last n lines of latest log file, where n is given by the command line argument --lines
+        with open(ctee_current_logfile, 'r') as f:
+            lines = f.readlines()
+        last_n_lines = ''.join(lines[-args.line_numbers:])  # join lines into a single string
 
     # Create or connect to the SQLite database and insert the note
     conn = sqlite3.connect(database_path)
@@ -54,7 +75,7 @@ def main():
     # Insert the note
     c.execute('''
         INSERT INTO notes VALUES (?, ?, ?)
-    ''', (timestamp, args.notes, last_50_lines))
+    ''', (timestamp, args.notes, last_n_lines))
 
     # Save (commit) the changes and close the connection
     conn.commit()
