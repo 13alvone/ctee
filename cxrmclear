@@ -18,11 +18,10 @@ def remove_control_bytes(b):
         rb'\x20\x0d\x20\x0d',           # Two Zero Width Joiner characters
         rb'\x1b\x5d\x37\x3b',           # Start of an incomplete OSC sequence
         rb'\x1b\[[0-?]*[ -/]*[@-~]',
-	rb'\x1b\x5b\x31\x6d',           # Set Display Attribute Mode, specifically enabling bold text
+	    rb'\x1b\x5b\x31\x6d',           # Set Display Attribute Mode, specifically enabling bold text
         rb'\x1b\x5b\x37\x6d',           # Set Display Attribute Mode, specifically enabling image negative (reverse video)
         rb'\x1b\x5b\x31\x6d',           # Again enabling bold text
         rb'\x1b\x5b\x30\x6d',           # Resets all display attributes to their defaults
-        # rb'\x5b\x32\x37\x6d',           # Unknown, but don’t need it
     ]
     return re.sub(b'|'.join(control_bytes), b'', b)
 
@@ -33,7 +32,6 @@ def handle_backspace(b):
         backspace_index = b.find(b'\x08', backspace_index)
         if backspace_index == -1:
             break
-        # Don't delete anything if backspace is the first character
         if backspace_index != 0:
             b = b[:backspace_index-1] + b[backspace_index+1:]
         else:
@@ -42,7 +40,7 @@ def handle_backspace(b):
     return b
 
 
-def process_file(filename):
+def process_file(filename, print_content=False):
     if not os.path.isfile(filename) or filename == '':
         print(f"[!] cxrmclear Error: '{filename}' does not exist, nor does ~/.ctee/ctee_cache")
         print("    - Please pass a filename from cwd or a full file path, or run a ctee session first and try again.")
@@ -57,6 +55,11 @@ def process_file(filename):
 
     sanitized_content = remove_control_bytes(content)
     sanitized_content = handle_backspace(sanitized_content)
+
+    if print_content:
+        # If the print_content parameter is True, print the entire file content.
+        print(sanitized_content.decode('utf-8', 'replace'))
+        return
 
     try:
         with open(filename, 'wb') as file:
@@ -82,7 +85,8 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Sanitize script replay files')
     parser.add_argument('-f', '--filename', help='Script replay file to sanitize', default=default_target)
+    parser.add_argument('-l', '--lines', action='store_true', help='Print sanitized content to stdout')
     args = parser.parse_args()
 
-    process_file(args.filename)
+    process_file(args.filename, args.lines)
 
