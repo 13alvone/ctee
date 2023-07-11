@@ -15,7 +15,7 @@ db_file="$HOME/.ctee/cxwrite_notes.db"
 backup_file="/tmp/BACKUP_cxwrite_notes.db"
 
 if [[ -f "$db_file" ]]; then
-    mv "$db_file" "$backup_file"
+    sudo mv -f "$db_file" "$backup_file"
     if [[ -f "$backup_file" ]]; then
         sudo chown -R root:root "$backup_file"
         sudo chmod -R 755 "$backup_file"

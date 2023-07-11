@@ -91,6 +91,9 @@ cxwrite() {
     return 1
   fi
 
+  # Append history lines from this session to the history file
+  history -a
+
   # Load history file
   history -r
 
