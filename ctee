@@ -98,7 +98,7 @@ cxwrite() {
   history -r
 
   # Get the last command
-  command_issued=$(history 2 | awk 'NR==1{$1=""; print substr($0,2)}')
+  command_issued=$(history 1 | awk 'NR==1{$1=""; print substr($0,2)}')
 
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   context=""  # The context field is always blank
