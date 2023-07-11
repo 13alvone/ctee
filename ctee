@@ -183,5 +183,5 @@ cxrmclear -f "$CTEE_CURRENT_LOGFILE"
 cxwrite "$CTEE_CURRENT_LOGFILE"
 
 # Create a copy of the resulting logfile in the current working directory
-cp $CTEE_CURRENT_LOGFILE $starting_dir/$log_filename
-
+# cp $CTEE_CURRENT_LOGFILE $starting_dir/$log_filename
+cp $CTEE_CURRENT_DBFILE $starting_dir/$db_filename
