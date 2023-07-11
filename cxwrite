@@ -29,7 +29,7 @@ ordered_list = contents.split(delimiter)
 
 # Path to the database
 # db_path = Path.home() / ".ctee/cxwrite_notes.db"
-db_path = os.getenv("CTEE_CURRENT_DBFILE")
+db_path = Path(os.getenv("CTEE_CURRENT_DBFILE"))
 
 # Check if database file exists
 if not db_path.is_file():
