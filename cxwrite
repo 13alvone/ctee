@@ -1,89 +1,72 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import glob
-import datetime
-import sqlite3
 import argparse
-import subprocess
+import sqlite3
+from pathlib import Path
 
-default_log = os.environ.get('CTEE_CURRENT_LOGFILE')
+# Define command line arguments parser
+parser = argparse.ArgumentParser(description="Process a utf-8 document and add contents to a SQLite database.")
+parser.add_argument("file_path", help="Path to the utf-8 document.")
+args = parser.parse_args()
 
+# Check if file path is valid
+if not Path(args.file_path).is_file():
+    print(f"[!] cxwrite DB Write Error: File {args.file_path} does not exist.")
+    exit(1)
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('notes', type=str, help='Your notes string.', default="N/A", nargs='?')
-    parser.add_argument('-n', '--line_numbers', type=int, help='Number of lines to print.', default=50)
-    parser.add_argument('-f', '--logfile', help='Optional Logfile.', required=False, default=default_log)
-    return parser.parse_args()
+# Read the file and split the contents
+try:
+    with open(args.file_path, 'r', encoding='utf-8') as file:
+        contents = file.read()
+except Exception as e:
+    print(f"[!] cxwrite DB Error reading file: {e}")
+    exit(1)
 
+# Split by delimiter defined by the environment variable
+delimiter = os.getenv("CTEE_CMD_DELIMITER")
+ordered_list = contents.split(delimiter)
 
-def get_current_history():
-    global args
-    # Execute the command, capture the stdout and stderr
-    cmd = f'cxrmclear -l -f "{args.logfile}"'
-    proc = subprocess.run(cmd, shell=True, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+# Path to the database
+db_path = Path.home() / ".ctee/cxwrite_notes.db"
 
-    # Returns STDOUT, STDERR
-    if proc.stdout:
-        return proc.stdout
-    
-    if proc.stderr:
-        return f'[!] STDERR: `{proc.stderr}`'
+# Check if database file exists
+if not db_path.is_file():
+    print(f"[!] cxwrite DB Error: Database {db_path} does not exist.")
+    exit(1)
 
-
-def main():
-    global args
-
-    ctee_dir = os.path.expanduser('~/.ctee/')
-    ctee_pid_file = os.path.join(ctee_dir, 'ctee.pid')
-
-    # Check that ctee is running, exit if not.
-    if not os.path.isfile(ctee_pid_file) or not os.getenv('CTEE_RECORDING') == "1":
-        print("[!] Not running in a ctee shell. Start `ctee` first by invoking it directly and try `cxwrite` again.")
-        return 1
-
-    args = get_args()
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    database_path = os.path.join(ctee_dir, 'cxwrite_notes.db')
-
-    if args.logfile:
-        full_history = get_current_history().split('\n')
-        last_n_lines = '\n'.join(full_history[len(full_history)-args.line_numbers:])
-    
-    else:    
-        ctee_current_logfile = os.environ.get('CTEE_CURRENT_LOGFILE')
-        # Get the last n lines of latest log file, where n is given by the command line argument --lines
-        with open(ctee_current_logfile, 'r') as f:
-            lines = f.readlines()
-        last_n_lines = ''.join(lines[-args.line_numbers:])  # join lines into a single string
-
-    # Create or connect to the SQLite database and insert the note
-    conn = sqlite3.connect(database_path)
+# Connect to the database
+try:
+    conn = sqlite3.connect(str(db_path))
     c = conn.cursor()
+except Exception as e:
+    print(f"[!] cxwrite DB Error connecting to database: {e}")
+    exit(1)
 
-    # Create table if it doesn't exist
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS notes (
-            timestamp TEXT,
-            note TEXT,
-            additional_context TEXT
-        )
-    ''')
+# Get the total count of rows in the table
+c.execute("SELECT COUNT(*) FROM notes")
+row_count = c.fetchone()[0]
 
-    # Insert the note
-    c.execute('''
-        INSERT INTO notes VALUES (?, ?, ?)
-    ''', (timestamp, args.notes, last_n_lines))
-
-    # Save (commit) the changes and close the connection
-    conn.commit()
+# Compare the length of the list with the row count
+if len(ordered_list) == row_count + 1:
+    ordered_list.pop()  # Remove the last element if list is 1 too long
+elif len(ordered_list) < row_count:
+    ordered_list += [""] * (row_count - len(ordered_list))  # Fill with empty strings if list is too short
+elif len(ordered_list) > row_count + 1:
+    print("[!] cxwrite DB Error: Too many elements in the file.")
     conn.close()
+    exit(1)
 
-    return 0
+# Update the 'context' field of each row with the corresponding element of the list
+for i, context in enumerate(ordered_list, start=1):
+    try:
+        c.execute("UPDATE notes SET context = ? WHERE rowid = ?", (context.encode(), i))
+    except Exception as e:
+        print(f"[i] cxwrite DB Error updating database: {e}")
+        conn.close()
+        exit(1)
 
-
-if __name__ == '__main__':
-    sys.exit(main())
+# Commit the changes and close the connection
+conn.commit()
+conn.close()
 

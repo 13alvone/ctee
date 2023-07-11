@@ -171,13 +171,14 @@ esac
 
 PROMPT_COMMAND=""
 export PROMPT_COMMAND=""
-echo "$output_dir$filename"
-echo "$output_cache_path"
-echo "$output_dir$filename:$output_dir$tfilename" > "$output_cache_path"
+echo "$CTEE_CURRENT_LOGFILE:$output_dir$tfilename" > "$output_cache_path"
 
 # Remove any non-printable control sequences, simulate backspaces, and clear actions with no-ops
-cxrmclear -f "$output_dir$filename"
+cxrmclear -f "$CTEE_CURRENT_LOGFILE"
+
+# Write the stdout as a 'context' blob within the cxwrite_notes.db sqlite3 database for each command issued during sesion.
+cxwrite -f "$CTEE_CURRENT_LOGFILE"
 
 # Create a copy of the resulting logfile in the current working directory
-cp $output_dir$filename $starting_dir/$log_filename
+cp $CTEE_CURRENT_LOGFILE $starting_dir/$log_filename
 
