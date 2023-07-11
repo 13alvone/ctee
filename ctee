@@ -80,7 +80,7 @@ DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
 
 # Define a function to write note with the last run command
-cxwrite() {
+background_cxwrite() {
   local note=""
   local command_issued=""
 
@@ -104,16 +104,16 @@ cxwrite() {
   context=""  # The context field is always blank
 
   # Check if table 'notes' exists, if not create it
-  sqlite3 $DB_FILE "CREATE TABLE IF NOT EXISTS notes (timestamp STRING, command_issued STRING, context BLOB, note STRING);"
+  sqlite3 $DB_FILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
 
   # Insert the record into the notes table
-  sqlite3 $DB_FILE "INSERT INTO notes (timestamp, command_issued, context, note) VALUES('$timestamp', '$command_issued', '', '$note');"
+  sqlite3 $DB_FILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
   echo $CTEE_CMD_DELIMITER
 }
 
-export -f cxwrite
-PROMPT_COMMAND=cxwrite
-export PROMPT_COMMAND=cxwrite
+export -f background_cxwrite
+PROMPT_COMMAND=background_cxwrite
+export PROMPT_COMMAND=background_cxwrite
 
 OS=$(uname -s)
 if [ "$OS" = "Linux" ]
