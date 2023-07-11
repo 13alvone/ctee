@@ -28,7 +28,8 @@ delimiter = os.getenv("CTEE_CMD_DELIMITER")
 ordered_list = contents.split(delimiter)
 
 # Path to the database
-db_path = Path.home() / ".ctee/cxwrite_notes.db"
+# db_path = Path.home() / ".ctee/cxwrite_notes.db"
+db_path = os.getenv("CTEE_CURRENT_DBFILE")
 
 # Check if database file exists
 if not db_path.is_file():
@@ -60,7 +61,8 @@ elif len(ordered_list) > row_count + 1:
 # Update the 'context' field of each row with the corresponding element of the list
 for i, context in enumerate(ordered_list, start=1):
     try:
-        c.execute("UPDATE notes SET context = ? WHERE rowid = ?", (context.encode(), i))
+        cleaned_context = context.lstrip('\n').rstrip('\n').encode()
+        c.execute("UPDATE notes SET context = ? WHERE rowid = ?", (cleaned_context, i))
     except Exception as e:
         print(f"[i] cxwrite DB Error updating database: {e}")
         conn.close()

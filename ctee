@@ -31,7 +31,9 @@ script_dir=$(dirname "$0")
 
 # Handle optional argument for log filename
 log_filename=${1:-"ctee_log_$(date +%Y%m%d%H%M%S)"}
+db_filename="$log_filename.db"
 echo "[i] Output Logfile: $starting_dir/$log_filename"
+echo "[i] Output Logfile: $starting_dir/$db_filename"
 
 # Function to cleanup temp files and remove pid file
 function cleanup {
@@ -78,6 +80,7 @@ CTEE_CMD_DELIMITER="--CTEE_CMD--"
 export CTEE_CMD_DELIMITER="--CTEE_CMD--"
 DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
+CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 
 # Define a function to write note with the last run command
 background_cxwrite() {
@@ -104,10 +107,10 @@ background_cxwrite() {
   context=""  # The context field is always blank
 
   # Check if table 'notes' exists, if not create it
-  sqlite3 $DB_FILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
+  sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
 
   # Insert the record into the notes table
-  sqlite3 $DB_FILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
+  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
   echo $CTEE_CMD_DELIMITER
 }
 
