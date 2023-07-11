@@ -33,7 +33,6 @@ script_dir=$(dirname "$0")
 log_filename=${1:-"ctee_log_$(date +%Y%m%d%H%M%S)"}
 db_filename="$log_filename.db"
 echo "[i] Output Logfile: $starting_dir/$log_filename"
-echo "[i] Output Logfile: $starting_dir/$db_filename"
 
 # Function to cleanup temp files and remove pid file
 function cleanup {
@@ -81,6 +80,7 @@ export CTEE_CMD_DELIMITER="--CTEE_CMD--"
 DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
 CTEE_CURRENT_DBFILE="$output_dir$db_filename"
+export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 
 # Define a function to write note with the last run command
 background_cxwrite() {
