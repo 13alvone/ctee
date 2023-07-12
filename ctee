@@ -86,6 +86,7 @@ export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shel
 cn() {
   :
 }
+export -f cn
 
 # Define a function to write note with the last run command
 background_cxwrite() {
@@ -117,7 +118,6 @@ background_cxwrite() {
   sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '$note');"
   echo $CTEE_CMD_DELIMITER
 }
-
 export -f background_cxwrite
 PROMPT_COMMAND=background_cxwrite
 export PROMPT_COMMAND=background_cxwrite
