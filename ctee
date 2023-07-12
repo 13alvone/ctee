@@ -83,6 +83,10 @@ export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
 export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shell as active. cxwrite can't access unless this exists.
 
+cn() {
+  :
+}
+
 # Define a function to write note with the last run command
 background_cxwrite() {
   local note=""
