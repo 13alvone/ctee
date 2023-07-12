@@ -80,18 +80,13 @@ DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
 CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
+export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
+export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shell as active. cxwrite can't access unless this exists.
 
 # Define a function to write note with the last run command
 background_cxwrite() {
   local note=""
   local command_issued=""
-
-  if [[ $# -eq 1 ]]; then
-    note=$1
-  elif [[ $# -ge 2 ]]; then
-    echo "Error: Please provide at most one argument for the notes."
-    return 1
-  fi
 
   # Append history lines from this session to the history file
   history -a
@@ -101,15 +96,21 @@ background_cxwrite() {
 
   # Get the last command
   command_issued=$(history 1 | awk 'NR==1{$1=""; print substr($0,2)}')
+  encoded_command=$(echo -n "$command_issued" | base64)
+
+  if [[ $command_issued == cn\ * ]] ; then
+    note_content=${command_issued#*\"}   # Remove everything up to the first quote
+    note_content=${note_content%%\"*}    # Remove everything after the first quote
+    note=$note_content
+  fi
 
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  context=""  # The context field is always blank
 
   # Check if table 'notes' exists, if not create it
   sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
 
   # Insert the record into the notes table
-  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
+  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '$note');"
   echo $CTEE_CMD_DELIMITER
 }
 
