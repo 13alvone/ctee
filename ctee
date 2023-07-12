@@ -31,6 +31,7 @@ script_dir=$(dirname "$0")
 
 # Handle optional argument for log filename
 log_filename=${1:-"ctee_log_$(date +%Y%m%d%H%M%S)"}
+db_filename="$log_filename.db"
 echo "[i] Output Logfile: $starting_dir/$log_filename"
 
 # Function to cleanup temp files and remove pid file
@@ -64,7 +65,6 @@ fi
 # Generate a timestamp for unique filename
 timestamp=$(date +%Y%m%d%H%M%S)
 filename="cli_record_$timestamp"
-ffilename="ctee_log_$timestamp"
 tfilename="cli_timer_$timestamp"
 
 # Create the target directory if it doesn't already exist
@@ -78,6 +78,8 @@ CTEE_CMD_DELIMITER="--CTEE_CMD--"
 export CTEE_CMD_DELIMITER="--CTEE_CMD--"
 DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
+CTEE_CURRENT_DBFILE="$output_dir$db_filename"
+export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 
 # Define a function to write note with the last run command
 background_cxwrite() {
@@ -104,10 +106,10 @@ background_cxwrite() {
   context=""  # The context field is always blank
 
   # Check if table 'notes' exists, if not create it
-  sqlite3 $DB_FILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
+  sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
 
   # Insert the record into the notes table
-  sqlite3 $DB_FILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
+  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$command_issued', '', '$note');"
   echo $CTEE_CMD_DELIMITER
 }
 
@@ -180,5 +182,4 @@ cxrmclear -f "$CTEE_CURRENT_LOGFILE"
 cxwrite "$CTEE_CURRENT_LOGFILE"
 
 # Create a copy of the resulting logfile in the current working directory
-cp $CTEE_CURRENT_LOGFILE $starting_dir/$log_filename
-
+cp $CTEE_CURRENT_DBFILE $starting_dir/$db_filename
