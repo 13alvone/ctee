@@ -30,6 +30,7 @@ sudo rm -rf /usr/local/bin/cxwrite
 sudo rm -rf /usr/local/bin/cxtiming
 sudo rm -rf /usr/local/bin/cxrun
 sudo rm -rf /usr/local/bin/cxrmclear
+sudo rm -rf /usr/local/bin/clook
 echo "[+] Removed the following components successfully and fully uninstalled CTEE:"
 echo ""
 echo "    [x] REMOVED: $HOME/.ctee/"
@@ -38,5 +39,6 @@ echo "    [x] REMOVED: /usr/local/bin/cxwrite"
 echo "    [x] REMOVED: /usr/local/bin/cxrun"
 echo "    [x] REMOVED: /usr/local/bin/cxtiming"
 echo "    [x] REMOVED: /usr/local/bin/cxrmclear"
+echo "    [x] REMOVED: /usr/local/bin/clook"
 echo ""
 

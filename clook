@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+import sqlite3
+import base64
+import os
+import argparse
+from colorama import Fore, Back, Style
+
+
+def print_with_intention(_string, newline=True, tab=False):
+    global output_summary
+    new_line = "\n" if newline else " "
+    _tab = "\t" if tab else " "
+
+    # Informational Statement
+    if _string.startswith("[i] "):
+        print(_tab + Fore.WHITE + Back.BLUE + "[i]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.WHITE + Back.BLUE + _string[4:] + Back.RESET + Fore.RESET + new_line)
+    # Declarative Statement
+    elif _string.startswith("[+] "):
+        print(_tab + Fore.BLACK + Back.GREEN + "[+]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.BLACK + Back.GREEN + _string[4:] + Fore.RESET + Back.RESET + new_line)
+    # Addendum or Continuation
+    elif _string.startswith("[^] "):
+        print("\t" + Fore.BLACK + Back.CYAN + "[^]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.BLACK + Back.CYAN + _string[4:] + Fore.RESET + Back.RESET + new_line)
+    # Error or Alert Notification
+    elif _string.startswith("[!] "):
+        print(_tab + Fore.WHITE + Back.RED + "[!]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.WHITE + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
+    # Error Details or Configuration Alert
+    elif _string.startswith("[*] "):
+        print(_tab + "\t" + Fore.RED + Back.YELLOW + "[*]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.RED + Back.YELLOW + _string[4:] + Fore.RESET + Back.RESET + new_line)
+    # System Errors
+    elif _string.startswith("[x] ") or _string.startswith("[X] "):
+        print(_tab + "\t\t" + Fore.YELLOW + Back.RED + "[x]" + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + Fore.YELLOW + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
+
+    output_summary.append(_string)
+
+
+def decode_base64(data):
+    try:
+        return base64.b64decode(data).decode('utf-8')
+    except Exception as e:
+        print_with_intention(f"[!] CLOOK Error decoding base64 data: {e}")
+        return data
+
+
+def print_rows(rows, show_stdout):
+    for row in rows:
+        command = decode_base64(row[2])
+        note = decode_base64(row[4])
+        print_with_intention(f'[+] Execution Time: {row[1]}')
+        print_with_intention(f'[-] File Path: {row[0]}', tab=True)
+        print_with_intention(f'[-] Command: {command}', tab=True)
+        print_with_intention(f'[-] Note: {note}', tab=True)
+        if show_stdout:
+            print_with_intention(f'[-] Stdout:', tab=True)
+            print(f'{row[3]}')
+        print('---\n')
+
+
+def search_database(database, search_term=None, mode=None, n=1, show_stdout=False):
+    try:
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        for table in tables:
+            if 'notes' in table:
+                cursor.execute(f"SELECT * FROM {table[0]}")
+                rows = cursor.fetchall()
+                for i in range(len(rows)):
+                    row = rows[i]
+                    if search_term and (search_term in decode_base64(row[2]) or search_term in decode_base64(row[4]) or search_term in str(row[3])):
+                        if mode == 'before':
+                            if i - n >= 0:
+                                print_rows(rows[i-n:i], show_stdout)
+                        elif mode == 'after':
+                            if i + n < len(rows):
+                                print_rows(rows[i:i+n+1], show_stdout)
+                        else:
+                            print_rows([row], show_stdout)
+                    elif not search_term:
+                        print_rows([row], show_stdout)
+        conn.close()
+    except Exception as e:
+        print_with_intention(f"[!] CLOOK Error processing database {database}: {e}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Search in sqlite databases.')
+    parser.add_argument('-s', '--search', type=str, help='The search term')
+    parser.add_argument('-m', '--mode', type=str, help='Mode, either "before" or "after"')
+    parser.add_argument('-n', type=int, default=1, help='Number of rows to print before or after the match')
+    parser.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
+    parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
+    args = parser.parse_args()
+
+    for database in os.listdir(args.dir):
+        if database.endswith('.db'):
+            if args.search:
+                search_database(os.path.join(args.dir, database), args.search, args.mode, args.n, args.stdout)
+            else:
+                search_database(os.path.join(args.dir, database), show_stdout=args.stdout)
+
+
+if __name__ == "__main__":
+    main()
+
