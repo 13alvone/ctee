@@ -8,7 +8,6 @@ from colorama import Fore, Back, Style
 
 
 def print_with_intention(_string, newline=True, tab=False):
-    global output_summary
     new_line = "\n" if newline else " "
     _tab = "\t" if tab else " "
 
@@ -37,28 +36,30 @@ def print_with_intention(_string, newline=True, tab=False):
         print(_tab + "\t\t" + Fore.YELLOW + Back.RED + "[x]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.YELLOW + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
 
-    output_summary.append(_string)
-
 
 def decode_base64(data):
     try:
         return base64.b64decode(data).decode('utf-8')
     except Exception as e:
-        print_with_intention(f"[!] CLOOK Error decoding base64 data: {e}")
-        return data
+        print(f"Error decoding base64 data: {e}")
+        return str(data) # Ensure data is returned as string even if it can't be decoded.
 
 
 def print_rows(rows, show_stdout):
     for row in rows:
         command = decode_base64(row[2])
+        if command.startswith('cn '):
+            continue
+        
         note = decode_base64(row[4])
         print_with_intention(f'[+] Execution Time: {row[1]}')
-        print_with_intention(f'[-] File Path: {row[0]}', tab=True)
-        print_with_intention(f'[-] Command: {command}', tab=True)
-        print_with_intention(f'[-] Note: {note}', tab=True)
+        print(f'[-] File Path: {row[0]}')
+        print(f'[-] Command: {command}')
+        print(f'[-] Note: {note.lstrip("cn ")}')
+        
         if show_stdout:
-            print_with_intention(f'[-] Stdout:', tab=True)
-            print(f'{row[3]}')
+            print(f'[-] Stdout:')
+            print(f'{row[3].decode()}')
         print('---\n')
 
 
