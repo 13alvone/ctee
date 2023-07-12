@@ -88,7 +88,6 @@ cn() {
 }
 export -f cn
 
-# Define a function to write note with the last run command
 background_cxwrite() {
   local note=""
   local command_issued=""
@@ -103,19 +102,24 @@ background_cxwrite() {
   command_issued=$(history 1 | awk 'NR==1{$1=""; print substr($0,2)}')
   encoded_command=$(echo -n "$command_issued" | base64)
 
-  if [[ $command_issued == cn\ * ]] ; then
-    note_content=${command_issued#*\"}   # Remove everything up to the first quote
-    note_content=${note_content%%\"*}    # Remove everything after the first quote
-    note=$note_content
-  fi
-
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
   # Check if table 'notes' exists, if not create it
   sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
 
-  # Insert the record into the notes table
-  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '$note');"
+  if [[ $command_issued == cn\ * ]] ; then
+    note=$encoded_command
+    # Get the rowid of the last record
+    local last_rowid=$(sqlite3 $CTEE_CURRENT_DBFILE "SELECT ROWID FROM notes ORDER BY ROWID DESC LIMIT 1;")
+    if [[ ! -z $last_rowid ]]; then
+      # Update the note of the last record
+      sqlite3 $CTEE_CURRENT_DBFILE "UPDATE notes SET note = '$note' WHERE ROWID = $last_rowid;"
+    fi
+  fi
+
+  # Always insert the record into the notes table
+  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '');"
+
   echo $CTEE_CMD_DELIMITER
 }
 export -f background_cxwrite
