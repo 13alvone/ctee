@@ -58,7 +58,7 @@ def print_rows(rows, show_stdout):
             continue
         
         note = decode_base64(row[4])
-        print_with_intention(f'[+] ({i}) Execution Time: {row[1]}')
+        print_with_intention(f'[+] ({row[5]}) Execution Time: {row[1]}')
         print_with_intention(f'[-] {command}')
         print(f'[-] Note: {note.lstrip("cn ")}')
         print(f'[-] Log Path: {row[0]}')

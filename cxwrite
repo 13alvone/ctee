@@ -37,7 +37,6 @@ while i < len(contents) - 1:
         i += 1
 
 contents = "\n".join(contents)
-# ordered_list = contents.split(delimiter)
 regex_pattern = f'\n{delimiter}\n'
 ordered_list = re.split(regex_pattern, contents)
 

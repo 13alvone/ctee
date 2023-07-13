@@ -78,6 +78,8 @@ output_cache_path=$output_dir"ctee_cache"
 export CTEE_CURRENT_LOGFILE="$output_dir$filename"
 CTEE_CMD_DELIMITER="--CTEE_CMD--"
 export CTEE_CMD_DELIMITER="--CTEE_CMD--"
+CTEE_CMD_ID=0
+export CTEE_CMD_ID=0
 DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
 CTEE_CURRENT_DBFILE="$output_dir$db_filename"
@@ -111,7 +113,7 @@ background_cxwrite() {
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
   # Check if table 'notes' exists, if not create it
-  sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING);"
+  sqlite3 $CTEE_CURRENT_DBFILE "CREATE TABLE IF NOT EXISTS notes (path STRING, timestamp STRING, command_issued STRING, context BLOB, note STRING, cmd_id STRING);"
 
   if [[ $command_issued == cn\ * ]] ; then
     note=$encoded_command
@@ -124,8 +126,9 @@ background_cxwrite() {
   fi
 
   # Always insert the record into the notes table
-  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '');"
+  sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note, cmd_id) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '', '$CTEE_CMD_ID');"
 
+  ((CTEE_CMD_ID++))
   echo $CTEE_CMD_DELIMITER
 }
 export -f background_cxwrite
