@@ -1,7 +1,13 @@
 #!/bin/bash
 
 if [ "$(id -u)" = "0" ]; then
-    echo "[x] This script should not be started with with SUDO but will request it for a few subcommands.." >&2
+    echo "[x] This script should not be started with SUDO but will request it for a few subcommands.." >&2
+    exit 1
+fi
+
+# Check if the application is already installed
+if [ -d "$HOME/.ctee" ] || [ -f "/usr/local/bin/ctee" ]; then
+    echo "The application is already installed at the target location. Exiting the installation..." >&2
     exit 1
 fi
 

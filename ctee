@@ -70,9 +70,11 @@ tfilename="cli_timer_$timestamp"
 # Create the target directory if it doesn't already exist
 mkdir -p $output_dir
 
-# Write the pid to a file and setup boilerplate components
+# Write the pid to a file
 echo $$ > $output_dir"ctee.pid"
 output_cache_path=$output_dir"ctee_cache"
+
+# Set Up Exports and ENVS
 export CTEE_CURRENT_LOGFILE="$output_dir$filename"
 CTEE_CMD_DELIMITER="--CTEE_CMD--"
 export CTEE_CMD_DELIMITER="--CTEE_CMD--"
@@ -80,8 +82,12 @@ DB_FILE=$output_dir"cxwrite_notes.db"
 export DB_FILE=$output_dir"cxwrite_notes.db"
 CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
+TMOUT=86400
 export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
+CTEE_RECORDING=1
 export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shell as active. cxwrite can't access unless this exists.
+PS1="CTEE [REC] > "
+export PS1="CTEE [REC] > "
 
 cn() {
   :

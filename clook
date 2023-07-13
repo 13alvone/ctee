@@ -6,6 +6,8 @@ import os
 import argparse
 from colorama import Fore, Back, Style
 
+standard_break = " " + Fore.BLACK + Back.CYAN + ' ---CMD END--- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
+
 
 def print_with_intention(_string, newline=True, tab=False):
     new_line = "\n" if newline else " "
@@ -23,6 +25,9 @@ def print_with_intention(_string, newline=True, tab=False):
     elif _string.startswith("[^] "):
         print("\t" + Fore.BLACK + Back.CYAN + "[^]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.BLACK + Back.CYAN + _string[4:] + Fore.RESET + Back.RESET + new_line)
+    elif _string.startswith("[-] "):
+        print(_tab + Fore.BLACK + Back.CYAN + " # " + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + _string[4:] + Fore.RESET + Back.RESET + new_line)
     # Error or Alert Notification
     elif _string.startswith("[!] "):
         print(_tab + Fore.WHITE + Back.RED + "[!]" + Back.RESET + Fore.RESET + " " +
@@ -46,21 +51,20 @@ def decode_base64(data):
 
 
 def print_rows(rows, show_stdout):
-    for row in rows:
+    global standard_break
+    for i, row in enumerate(rows, start=1):
         command = decode_base64(row[2])
         if command.startswith('cn '):
             continue
         
         note = decode_base64(row[4])
-        print_with_intention(f'[+] Execution Time: {row[1]}')
-        print(f'[-] File Path: {row[0]}')
-        print(f'[-] Command: {command}')
+        print_with_intention(f'[+] ({i}) Execution Time: {row[1]}')
+        print_with_intention(f'[-] {command}')
         print(f'[-] Note: {note.lstrip("cn ")}')
+        print(f'[-] Log Path: {row[0]}')
         
         if show_stdout:
-            print(f'[-] Stdout:')
-            print(f'{row[3].decode()}')
-        print('---\n')
+            print(f'[-] STDOUT Replay:\n\n{row[3].decode()}\n\n{standard_break}\n')
 
 
 def search_database(database, search_term=None, mode=None, n=1, show_stdout=False):

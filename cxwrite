@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 import os
 import argparse
 import sqlite3
@@ -25,10 +26,22 @@ except Exception as e:
 
 # Split by delimiter defined by the environment variable
 delimiter = os.getenv("CTEE_CMD_DELIMITER")
-ordered_list = contents.split(delimiter)
+contents = contents.split("\n")
+
+# Remove any back-to-back occurrences of delimiter + "\n"
+i = 0
+while i < len(contents) - 1:
+    if contents[i] == delimiter and contents[i + 1] == delimiter:
+        del contents[i]
+    else:
+        i += 1
+
+contents = "\n".join(contents)
+# ordered_list = contents.split(delimiter)
+regex_pattern = f'\n{delimiter}\n'
+ordered_list = re.split(regex_pattern, contents)
 
 # Path to the database
-# db_path = Path.home() / ".ctee/cxwrite_notes.db"
 db_path = Path(os.getenv("CTEE_CURRENT_DBFILE"))
 
 # Check if database file exists
