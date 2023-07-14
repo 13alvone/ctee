@@ -6,7 +6,8 @@ import os
 import argparse
 from colorama import Fore, Back, Style
 
-standard_break = " " + Fore.BLACK + Back.CYAN + ' ---CMD END--- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
+standard_start = " " + Fore.WHITE + Back.RED + ' ---CMD START--- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
+standard_stop = " " + Fore.WHITE + Back.RED + ' ----CMD END---- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
 
 
 def print_with_intention(_string, newline=True, tab=False):
@@ -23,19 +24,15 @@ def print_with_intention(_string, newline=True, tab=False):
               Style.RESET_ALL + Fore.BLACK + Back.GREEN + _string[4:] + Fore.RESET + Back.RESET + new_line)
     # Addendum or Continuation
     elif _string.startswith("[^] "):
-        print("\t" + Fore.BLACK + Back.CYAN + "[^]" + Back.RESET + Fore.RESET + " " +
-              Style.RESET_ALL + Fore.BLACK + Back.CYAN + _string[4:] + Fore.RESET + Back.RESET + new_line)
+        print(_tab + Fore.WHITE + Back.RED + " > " + Back.RESET + Fore.RESET + " " +
+              Style.RESET_ALL + _string[4:] + Fore.RESET + Back.RESET + new_line)
     elif _string.startswith("[-] "):
-        print(_tab + Fore.BLACK + Back.CYAN + " # " + Back.RESET + Fore.RESET + " " +
+        print(_tab + Fore.BLACK + Back.GREEN + " > " + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + _string[4:] + Fore.RESET + Back.RESET + new_line)
     # Error or Alert Notification
     elif _string.startswith("[!] "):
         print(_tab + Fore.WHITE + Back.RED + "[!]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.WHITE + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
-    # Error Details or Configuration Alert
-    elif _string.startswith("[*] "):
-        print(_tab + "\t" + Fore.RED + Back.YELLOW + "[*]" + Back.RESET + Fore.RESET + " " +
-              Style.RESET_ALL + Fore.RED + Back.YELLOW + _string[4:] + Fore.RESET + Back.RESET + new_line)
     # System Errors
     elif _string.startswith("[x] ") or _string.startswith("[X] "):
         print(_tab + "\t\t" + Fore.YELLOW + Back.RED + "[x]" + Back.RESET + Fore.RESET + " " +
@@ -51,20 +48,26 @@ def decode_base64(data):
 
 
 def print_rows(rows, show_stdout):
-    global standard_break
+    global standard_start, standard_stop
     for i, row in enumerate(rows, start=1):
         command = decode_base64(row[2])
+        
         if command.startswith('cn '):
             continue
         
         note = decode_base64(row[4])
-        print_with_intention(f'[+] ({row[5]}) Execution Time: {row[1]}')
-        print_with_intention(f'[-] {command}')
-        print(f'[-] Note: {note.lstrip("cn ")}')
-        print(f'[-] Log Path: {row[0]}')
+        nfilename = os.path.basename(row[0])
+        print('\n')
+        print_with_intention(f'[+] CMD {row[5]} ({row[1]}) --> {nfilename}')
+        print_with_intention(f'[^] {command}')
+        note_content = note.lstrip("cn ")
+        # print_with_intention(f'[i] Log Path: {row[0]}')
+        
+        if note_content:
+            print_with_intention(f'[i] {note_content}')
         
         if show_stdout:
-            print(f'[-] STDOUT Replay:\n\n{row[3].decode()}\n\n{standard_break}\n')
+            print(f'{standard_start}\n\n{row[3].decode()}\n\n{standard_stop}\n')
 
 
 def search_database(database, search_term=None, mode=None, n=1, show_stdout=False):
