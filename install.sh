@@ -22,6 +22,10 @@ sudo cp ctee cxwrite cxrun cxtiming cxrmclear clook /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctee /usr/local/bin/cxwrite /usr/local/bin/cxtiming 
 sudo chmod +x /usr/local/bin/cxrun /usr/local/bin/cxrmclear /usr/local/bin/clook
 
+# Attempt to install any potentially missing python3 libraries in use
+sudo pip3 install colorama
+sudo pip3 install reportlab
+
 # Check the operating system
 OS="unknown"
 source_group="MISSING_CHECK_INSTALL_SH"

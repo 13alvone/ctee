@@ -3,11 +3,17 @@
 import sqlite3
 import base64
 import os
+import sys
+import tempfile
 import argparse
+import subprocess
+from io import StringIO
 from colorama import Fore, Back, Style
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, landscape
 
-standard_start = " " + Fore.WHITE + Back.RED + ' ---CMD START--- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
-standard_stop = " " + Fore.WHITE + Back.RED + ' ----CMD END---- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
+standard_start = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
+standard_stop = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
 
 
 def print_with_intention(_string, newline=True, tab=False):
@@ -98,6 +104,17 @@ def search_database(database, search_term=None, mode=None, n=1, show_stdout=Fals
         print_with_intention(f"[!] CLOOK Error processing database {database}: {e}")
 
 
+class Tee(object):
+    def __init__(self, *files):
+        self.files = files
+    def write(self, obj):
+        for file in self.files:
+            file.write(obj)
+    def flush(self):
+        for file in self.files:
+            file.flush()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Search in sqlite databases.')
     parser.add_argument('-s', '--search', type=str, help='The search term')
@@ -105,14 +122,57 @@ def main():
     parser.add_argument('-n', type=int, default=1, help='Number of rows to print before or after the match')
     parser.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
     parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
+    parser.add_argument('-p', '--pdf', action='store_true', help='Generate PDF output')
     args = parser.parse_args()
 
     for database in os.listdir(args.dir):
         if database.endswith('.db'):
+            # If PDF output is requested, capture stdout in addition to printing to console
+            if args.pdf:
+                stdout_string = StringIO()
+                sys.stdout = Tee(sys.stdout, stdout_string)
+
             if args.search:
                 search_database(os.path.join(args.dir, database), args.search, args.mode, args.n, args.stdout)
             else:
                 search_database(os.path.join(args.dir, database), show_stdout=args.stdout)
+
+            # If PDF output was requested, write captured stdout string to PDF
+            if args.pdf:
+                # Write stdout_string to a temporary file
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(stdout_string.getvalue().encode())
+                    tmp_filename = tmp.name
+
+                # Run cxrmclear on the temporary file
+                subprocess.run(['cxrmclear', '-qf', tmp_filename])
+
+                # Read the sanitized contents back into stdout_string_sanitized
+                with open(tmp_filename, 'r') as tmp:
+                    stdout_string_sanitized = tmp.read()
+
+                # Delete the temporary file
+                os.remove(tmp_filename)
+
+                # Generate PDF filename based on database name
+                pdf_filename = os.path.splitext(database)[0] + '.pdf'
+
+                # Write sanitized stdout string to PDF
+                c = canvas.Canvas(pdf_filename, pagesize=landscape(letter))
+                width, height = landscape(letter)
+                c.setFont("Courier", 10)
+                x = 10
+                y = height - 10
+                for line in stdout_string_sanitized.split('\n'):
+                    if y < 10:
+                        c.showPage()
+                        y = height - 10
+                    c.drawString(x, y, line)
+                    y -= 10
+                c.save()
+
+                # Reset stdout for the next database
+                sys.stdout = sys.stdout.files[0]
 
 
 if __name__ == "__main__":
