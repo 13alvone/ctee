@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import sqlite3
-import base64
 import os
 import sys
+import time
+import base64
+import sqlite3
 import tempfile
 import argparse
 import subprocess
@@ -122,13 +123,13 @@ def main():
     parser.add_argument('-n', type=int, default=1, help='Number of rows to print before or after the match')
     parser.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
     parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
-    parser.add_argument('-p', '--pdf', action='store_true', help='Generate PDF output')
+    parser.add_argument('-p', '--html', action='store_true', help='Generate HTML output')
     args = parser.parse_args()
 
     for database in os.listdir(args.dir):
         if database.endswith('.db'):
-            # If PDF output is requested, capture stdout in addition to printing to console
-            if args.pdf:
+            # If HTML output is requested, capture stdout in addition to printing to console
+            if args.html:
                 stdout_string = StringIO()
                 sys.stdout = Tee(sys.stdout, stdout_string)
 
@@ -137,8 +138,8 @@ def main():
             else:
                 search_database(os.path.join(args.dir, database), show_stdout=args.stdout)
 
-            # If PDF output was requested, write captured stdout string to PDF
-            if args.pdf:
+            # If HTML output was requested, write captured stdout string to HTML
+            if args.html:
                 # Write stdout_string to a temporary file
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     tmp.write(stdout_string.getvalue().encode())
@@ -154,22 +155,30 @@ def main():
                 # Delete the temporary file
                 os.remove(tmp_filename)
 
-                # Generate PDF filename based on database name
-                pdf_filename = os.path.splitext(database)[0] + '.pdf'
+                # Generate HTML filename based on database name
+                html_filename = os.path.splitext(database)[0] + '.html'
 
-                # Write sanitized stdout string to PDF
-                c = canvas.Canvas(pdf_filename, pagesize=landscape(letter))
-                width, height = landscape(letter)
-                c.setFont("Courier", 10)
-                x = 10
-                y = height - 10
-                for line in stdout_string_sanitized.split('\n'):
-                    if y < 10:
-                        c.showPage()
-                        y = height - 10
-                    c.drawString(x, y, line)
-                    y -= 10
-                c.save()
+                # Write sanitized stdout string to HTML
+                with open(html_filename, 'w') as f:
+                    f.write('<html>\n<head>\n<style>\npre { width: 800px; white-space: pre-wrap; word-wrap: break-word; }\n</style>\n</head>\n<body>\n')
+                    f.write('<pre>\n')
+                    f.write('---------------------------------------------------------\n')
+                    f.write(' ______     ______   ______     ______    \n')
+                    f.write('/\  ___\   /\__  _\ /\  ___\   /\  ___\   \n')
+                    f.write('\ \ \____  \/_/\ \/ \ \  __\   \ \  __\   \n')
+                    f.write(' \ \_____\    \ \_\  \ \_____\  \ \_____\ \n')
+                    f.write('  \/_____/     \/_/   \/_____/   \/_____/ \n')
+                    f.write('                                          \n')
+                    f.write('* <i>Command Line Session Transcript</t>\n')
+                    f.write('[i] Source: https://github.com/13alvone/ctee\n')
+                    f.write(f'[i] Generated Time: {time.strftime("%Y%m%d-%H%M%S")}\n')
+                    f.write(f'[i] Target Session DB: {database}\n')
+                    f.write('---------------------------------------------------------\n')
+                    f.write('                                          \n\n')
+                    f.write('</pre>\n')
+                    f.write('<pre>\n')
+                    f.write(stdout_string_sanitized)
+                    f.write('\n</pre>\n</body>\n</html>')
 
                 # Reset stdout for the next database
                 sys.stdout = sys.stdout.files[0]
