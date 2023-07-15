@@ -21,26 +21,21 @@ def print_with_intention(_string, newline=True, tab=False):
     new_line = "\n" if newline else " "
     _tab = "\t" if tab else " "
 
-    # Informational Statement
     if _string.startswith("[i] "):
         print(_tab + Fore.WHITE + Back.BLUE + "[i]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.WHITE + Back.BLUE + _string[4:] + Back.RESET + Fore.RESET + new_line)
-    # Declarative Statement
     elif _string.startswith("[+] "):
         print(_tab + Fore.BLACK + Back.GREEN + "[+]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.BLACK + Back.GREEN + _string[4:] + Fore.RESET + Back.RESET + new_line)
-    # Addendum or Continuation
     elif _string.startswith("[^] "):
         print(_tab + Fore.WHITE + Back.RED + " > " + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + _string[4:] + Fore.RESET + Back.RESET + new_line)
     elif _string.startswith("[-] "):
         print(_tab + Fore.BLACK + Back.GREEN + " > " + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + _string[4:] + Fore.RESET + Back.RESET + new_line)
-    # Error or Alert Notification
     elif _string.startswith("[!] "):
         print(_tab + Fore.WHITE + Back.RED + "[!]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.WHITE + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
-    # System Errors
     elif _string.startswith("[x] ") or _string.startswith("[X] "):
         print(_tab + "\t\t" + Fore.YELLOW + Back.RED + "[x]" + Back.RESET + Fore.RESET + " " +
               Style.RESET_ALL + Fore.YELLOW + Back.RED + _string[4:] + Fore.RESET + Back.RESET + new_line)
@@ -51,7 +46,7 @@ def decode_base64(data):
         return base64.b64decode(data).decode('utf-8')
     except Exception as e:
         print(f"Error decoding base64 data: {e}")
-        return str(data) # Ensure data is returned as string even if it can't be decoded.
+        return str(data) 
 
 
 def print_rows(rows, show_stdout):
@@ -68,7 +63,6 @@ def print_rows(rows, show_stdout):
         print_with_intention(f'[+] CMD {row[5]} ({row[1]}) --> {nfilename}')
         print_with_intention(f'[^] {command}')
         note_content = note.lstrip("cn ")
-        # print_with_intention(f'[i] Log Path: {row[0]}')
         
         if note_content:
             print_with_intention(f'[i] {note_content}')
@@ -77,7 +71,7 @@ def print_rows(rows, show_stdout):
             print(f'{standard_start}\n\n{row[3].decode()}\n\n{standard_stop}\n')
 
 
-def search_database(database, search_term=None, mode=None, n=1, show_stdout=False):
+def search_database(database, search_term=None, mode=None, n=1, show_stdout=False, cmd_id=None):
     try:
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
@@ -87,19 +81,25 @@ def search_database(database, search_term=None, mode=None, n=1, show_stdout=Fals
             if 'notes' in table:
                 cursor.execute(f"SELECT * FROM {table[0]}")
                 rows = cursor.fetchall()
-                for i in range(len(rows)):
-                    row = rows[i]
-                    if search_term and (search_term in decode_base64(row[2]) or search_term in decode_base64(row[4]) or search_term in str(row[3])):
-                        if mode == 'before':
-                            if i - n >= 0:
-                                print_rows(rows[i-n:i], show_stdout)
-                        elif mode == 'after':
-                            if i + n < len(rows):
-                                print_rows(rows[i:i+n+1], show_stdout)
-                        else:
+                if cmd_id is not None:
+                    for row in rows:
+                        if row[5] == cmd_id: 
                             print_rows([row], show_stdout)
-                    elif not search_term:
-                        print_rows([row], show_stdout)
+                            return
+                else:
+                    for i in range(len(rows)):
+                        row = rows[i]
+                        if search_term and (search_term in decode_base64(row[2]) or search_term in decode_base64(row[4]) or search_term in str(row[3])):
+                            if mode == 'before':
+                                if i - n >= 0:
+                                    print_rows(rows[i-n:i], show_stdout)
+                            elif mode == 'after':
+                                if i + n < len(rows):
+                                    print_rows(rows[i:i+n+1], show_stdout)
+                            else:
+                                print_rows([row], show_stdout)
+                        elif not search_term:
+                            print_rows([row], show_stdout)
         conn.close()
     except Exception as e:
         print_with_intention(f"[!] CLOOK Error processing database {database}: {e}")
@@ -124,41 +124,34 @@ def main():
     parser.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
     parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
     parser.add_argument('-p', '--html', action='store_true', help='Generate HTML output')
+    parser.add_argument('-c', '--cmd_id', type=int, help='The command id to search')
     args = parser.parse_args()
 
     for database in os.listdir(args.dir):
         if database.endswith('.db'):
-            # If HTML output is requested, capture stdout in addition to printing to console
             if args.html:
                 stdout_string = StringIO()
                 sys.stdout = Tee(sys.stdout, stdout_string)
 
             if args.search:
-                search_database(os.path.join(args.dir, database), args.search, args.mode, args.n, args.stdout)
+                search_database(os.path.join(args.dir, database), args.search, args.mode, args.n, args.stdout, args.cmd_id)
             else:
-                search_database(os.path.join(args.dir, database), show_stdout=args.stdout)
+                search_database(os.path.join(args.dir, database), show_stdout=args.stdout, cmd_id=args.cmd_id)
 
-            # If HTML output was requested, write captured stdout string to HTML
             if args.html:
-                # Write stdout_string to a temporary file
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     tmp.write(stdout_string.getvalue().encode())
                     tmp_filename = tmp.name
 
-                # Run cxrmclear on the temporary file
                 subprocess.run(['cxrmclear', '-qf', tmp_filename])
 
-                # Read the sanitized contents back into stdout_string_sanitized
                 with open(tmp_filename, 'r') as tmp:
                     stdout_string_sanitized = tmp.read()
 
-                # Delete the temporary file
                 os.remove(tmp_filename)
 
-                # Generate HTML filename based on database name
                 html_filename = os.path.splitext(database)[0] + '.html'
 
-                # Write sanitized stdout string to HTML
                 with open(html_filename, 'w') as f:
                     f.write('<html>\n<head>\n<style>\npre { width: 800px; white-space: pre-wrap; word-wrap: break-word; }\n</style>\n</head>\n<body>\n')
                     f.write('<pre>\n')
@@ -180,7 +173,6 @@ def main():
                     f.write(stdout_string_sanitized)
                     f.write('\n</pre>\n</body>\n</html>')
 
-                # Reset stdout for the next database
                 sys.stdout = sys.stdout.files[0]
 
 
