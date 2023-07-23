@@ -72,13 +72,16 @@ elif len(ordered_list) > row_count + 1:
 
 # Update the 'context' field of each row with the corresponding element of the list
 for i, context in enumerate(ordered_list, start=1):
-    try:
-        cleaned_context = context.lstrip('\n').rstrip('\n').encode()
-        c.execute("UPDATE notes SET context = ? WHERE rowid = ?", (cleaned_context, i))
-    except Exception as e:
-        print(f"[i] cxwrite DB Error updating database: {e}")
-        conn.close()
-        exit(1)
+    if i != 1:
+        try:
+            cleaned_context = context.lstrip('\n').rstrip('\n').encode()
+            c.execute("UPDATE notes SET context = ? WHERE rowid = ?", (cleaned_context, i))
+        except Exception as e:
+            print(f"[i] cxwrite DB Error updating database: {e}")
+            conn.close()
+            exit(1)
+    else:
+        c.execute("UPDATE notes SET command_issued = ?, context = ? WHERE rowid = ?", ("Y3RlZQ==", sqlite3.Binary(b'CTEE [REC] session started...'),i))
 
 # Commit the changes and close the connection
 conn.commit()
