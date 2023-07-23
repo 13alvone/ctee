@@ -16,7 +16,6 @@ from reportlab.lib.pagesizes import letter, landscape
 standard_start = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
 standard_stop = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
 
-
 def print_with_intention(_string, newline=True, tab=False):
     new_line = "\n" if newline else " "
     _tab = "\t" if tab else " "
@@ -46,27 +45,27 @@ def decode_base64(data):
         return base64.b64decode(data).decode('utf-8')
     except Exception as e:
         print(f"Error decoding base64 data: {e}")
-        return str(data) 
+        return str(data)
 
 
 def print_rows(rows, show_stdout):
     global standard_start, standard_stop
     for i, row in enumerate(rows, start=1):
         command = decode_base64(row[2])
-        
+
         if command.startswith('cn '):
             continue
-        
+
         note = decode_base64(row[4])
         nfilename = os.path.basename(row[0])
         print('\n')
         print_with_intention(f'[+] CMD {row[5]} ({row[1]}) --> {nfilename}')
         print_with_intention(f'[^] {command}')
         note_content = note.lstrip("cn ")
-        
+
         if note_content:
             print_with_intention(f'[i] {note_content}')
-        
+
         if show_stdout:
             print(f'{standard_start}\n\n{row[3].decode()}\n\n{standard_stop}\n')
 
@@ -116,6 +115,11 @@ class Tee(object):
             file.flush()
 
 
+class DummyStream:
+    def write(self, _): pass
+    def flush(self): pass
+
+
 def main():
     global args
     parser = argparse.ArgumentParser(description='Search in sqlite databases.')
@@ -125,12 +129,16 @@ def main():
     parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
     parser.add_argument('-p', '--html', action='store_true', help='Generate HTML output')
     parser.add_argument('-c', '--cmd_id', type=int, help='The command id to search')
+    parser.add_argument('--silent', action='store_true', help='Suppress console output')
 
     group = parser.add_mutually_exclusive_group() # Create mutually exclusive group
     group.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
     group.add_argument('-f', '--file', type=str, help='The .db file to be processed')
 
     args = parser.parse_args()
+
+    if args.silent:
+        sys.stdout = DummyStream()
 
     databases = []
 

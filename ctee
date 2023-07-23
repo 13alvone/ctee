@@ -204,5 +204,5 @@ cxwrite "$CTEE_CURRENT_LOGFILE"
 cp $CTEE_CURRENT_DBFILE ./$db_filename
 
 # Create a default HTML report of what just happened as well.
-clook -pof ./$db_filename
+clook --silent -pof ./$db_filename
 
