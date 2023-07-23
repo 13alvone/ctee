@@ -117,63 +117,74 @@ class Tee(object):
 
 
 def main():
+    global args
     parser = argparse.ArgumentParser(description='Search in sqlite databases.')
     parser.add_argument('-s', '--search', type=str, help='The search term')
     parser.add_argument('-m', '--mode', type=str, help='Mode, either "before" or "after"')
     parser.add_argument('-n', type=int, default=1, help='Number of rows to print before or after the match')
-    parser.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
     parser.add_argument('-o', '--stdout', action='store_true', help='Option to show stdout')
     parser.add_argument('-p', '--html', action='store_true', help='Generate HTML output')
     parser.add_argument('-c', '--cmd_id', type=int, help='The command id to search')
+
+    group = parser.add_mutually_exclusive_group() # Create mutually exclusive group
+    group.add_argument('-d', '--dir', type=str, default='.', help='Directory to search for databases')
+    group.add_argument('-f', '--file', type=str, help='The .db file to be processed')
+
     args = parser.parse_args()
 
-    for database in os.listdir(args.dir):
-        if database.endswith('.db'):
-            if args.html:
-                stdout_string = StringIO()
-                sys.stdout = Tee(sys.stdout, stdout_string)
+    databases = []
 
-            if args.search:
-                search_database(os.path.join(args.dir, database), args.search, args.mode, args.n, args.stdout, args.cmd_id)
-            else:
-                search_database(os.path.join(args.dir, database), show_stdout=args.stdout, cmd_id=args.cmd_id)
+    if args.dir and not args.file:
+        databases.extend([os.path.join(args.dir, f) for f in os.listdir(args.dir) if f.endswith('.db')])
+    if args.file and args.file.endswith('.db'):
+        databases.append(args.file)
 
-            if args.html:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    tmp.write(stdout_string.getvalue().encode())
-                    tmp_filename = tmp.name
+    for database in databases:
+        if args.html:
+            stdout_string = StringIO()
+            sys.stdout = Tee(sys.stdout, stdout_string)
 
-                subprocess.run(['cxrmclear', '-qf', tmp_filename])
+        if args.search:
+            search_database(database, args.search, args.mode, args.n, args.stdout, args.cmd_id)
+        else:
+            search_database(database, show_stdout=args.stdout, cmd_id=args.cmd_id)
 
-                with open(tmp_filename, 'r') as tmp:
-                    stdout_string_sanitized = tmp.read()
+        if args.html:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(stdout_string.getvalue().encode())
+                tmp_filename = tmp.name
 
-                os.remove(tmp_filename)
+            subprocess.run(['cxrmclear', '-qf', tmp_filename])
 
-                html_filename = os.path.splitext(database)[0] + '.html'
+            with open(tmp_filename, 'r') as tmp:
+                stdout_string_sanitized = tmp.read()
 
-                with open(html_filename, 'w') as f:
-                    f.write('<html>\n<head>\n<style>\npre { width: 800px; white-space: pre-wrap; word-wrap: break-word; }\n</style>\n</head>\n<body>\n')
-                    f.write('<pre>\n')
-                    f.write('---------------------------------------------------------\n')
-                    f.write(' ______     ______   ______     ______    \n')
-                    f.write('/\  ___\   /\__  _\ /\  ___\   /\  ___\   \n')
-                    f.write('\ \ \____  \/_/\ \/ \ \  __\   \ \  __\   \n')
-                    f.write(' \ \_____\    \ \_\  \ \_____\  \ \_____\ \n')
-                    f.write('  \/_____/     \/_/   \/_____/   \/_____/ \n')
-                    f.write('                                          \n')
-                    f.write('* <i>Command Line Session Transcript</t>\n')
-                    f.write('[i] Source: https://github.com/13alvone/ctee\n')
-                    f.write(f'[i] Generated Time: {time.strftime("%Y%m%d-%H%M%S")}\n')
-                    f.write(f'[i] Target Session DB: {database}\n')
-                    f.write('---------------------------------------------------------\n')
-                    f.write('                                          \n\n')
-                    f.write('</pre>\n')
-                    f.write('<pre>\n')
-                    f.write(stdout_string_sanitized)
-                    f.write('\n</pre>\n</body>\n</html>')
+            os.remove(tmp_filename)
 
-                sys.stdout = sys.stdout.files[0]
+            html_filename = os.path.splitext(database)[0] + '.html'
+
+            with open(html_filename, 'w') as f:
+                f.write('<html>\n<head>\n<style>\npre { width: 800px; white-space: pre-wrap; word-wrap: break-word; }\n</style>\n</head>\n<body>\n')
+                f.write('<pre>\n')
+                f.write('---------------------------------------------------------\n')
+                f.write(' ______     ______   ______     ______    \n')
+                f.write('/\  ___\   /\__  _\ /\  ___\   /\  ___\   \n')
+                f.write('\ \ \____  \/_/\ \/ \ \  __\   \ \  __\   \n')
+                f.write(' \ \_____\    \ \_\  \ \_____\  \ \_____\ \n')
+                f.write('  \/_____/     \/_/   \/_____/   \/_____/ \n')
+                f.write('                                          \n')
+                f.write('* <i>Command Line Session Transcript</t>\n')
+                f.write('[i] Source: https://github.com/13alvone/ctee\n')
+                f.write(f'[i] Generated Time: {time.strftime("%Y%m%d-%H%M%S")}\n')
+                f.write(f'[i] Target Session DB: {database}\n')
+                f.write('---------------------------------------------------------\n')
+                f.write('                                          \n\n')
+                f.write('</pre>\n')
+                f.write('<pre>\n')
+                f.write(stdout_string_sanitized)
+                f.write('\n</pre>\n</body>\n</html>')
+
+            sys.stdout = sys.stdout.files[0]
 
 
 if __name__ == "__main__":
