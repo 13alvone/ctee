@@ -76,20 +76,16 @@ output_cache_path=$output_dir"ctee_cache"
 
 # Set Up Exports and ENVS
 export CTEE_CURRENT_LOGFILE="$output_dir$filename"
-CTEE_CMD_DELIMITER="--CTEE_CMD--"
-export CTEE_CMD_DELIMITER="--CTEE_CMD--"
+CTEE_CMD_DELIMITER="--CTEE [REC]--"
+export CTEE_CMD_DELIMITER="--CTEE [REC]--"
 CTEE_CMD_ID=0
 export CTEE_CMD_ID=0
-DB_FILE=$output_dir"cxwrite_notes.db"
-export DB_FILE=$output_dir"cxwrite_notes.db"
 CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 export CTEE_CURRENT_DBFILE="$output_dir$db_filename"
 TMOUT=86400
 export TMOUT=86400; readonly TMOUT # Defining a default timeout of 24 hours for any started ctee session.
 CTEE_RECORDING=1
 export CTEE_RECORDING=1; readonly CTEE_RECORDING # Marking the current ctee shell as active. cxwrite can't access unless this exists.
-PS1="CTEE [REC] > "
-export PS1="CTEE [REC] > "
 
 cn() {
   :
@@ -128,7 +124,7 @@ background_cxwrite() {
   # Always insert the record into the notes table
   sqlite3 $CTEE_CURRENT_DBFILE "INSERT INTO notes (path, timestamp, command_issued, context, note, cmd_id) VALUES('$CTEE_CURRENT_LOGFILE', '$timestamp', '$encoded_command', '', '', '$CTEE_CMD_ID');"
 
-  ((CTEE_CMD_ID++))i
+  ((CTEE_CMD_ID++))
   echo ""
   echo $CTEE_CMD_DELIMITER
 }
@@ -201,4 +197,4 @@ cxrmclear -f "$CTEE_CURRENT_LOGFILE"
 cxwrite "$CTEE_CURRENT_LOGFILE"
 
 # Create a copy of the resulting logfile in the current working directory
-cp $CTEE_CURRENT_DBFILE $starting_dir/$db_filename
+cp $CTEE_CURRENT_DBFILE ./$db_filename
