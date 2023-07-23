@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import argparse
+from bs4 import BeautifulSoup
+import re
+
+def parse_content(content):
+    lines = content.split('\n')
+    code_box_open = False
+    new_lines = []
+    for i, line in enumerate(lines):
+        leading_spaces, line_content = re.match(r'( *)(.*)', line).groups()
+        line_content = line_content.lstrip().rstrip()
+
+        # Skip lines that only contain whitespace
+        if line_content == '':
+            continue
+
+        # Add CSS classes based on the line content
+        if line_content.startswith('[+]'):
+            new_lines.append(f'{leading_spaces}<span class="header">{line_content}</span>')
+        elif line_content.startswith('>'):
+            new_lines.append(f'{leading_spaces}<span class="command">{line_content}</span>')
+        elif line_content.startswith('[i] "'):
+            new_lines.append(f'{leading_spaces}<span class="info">{line_content}</span>')
+        elif line_content.startswith('----'):
+            new_lines.append(f'{leading_spaces}<span class="delim">{line_content}</span>')
+        elif line_content == '---' and not code_box_open:
+            code_box_open = True
+            new_lines.append('<pre><code class="code-box">')
+        elif line_content == '---' and code_box_open:
+            code_box_open = False
+            new_lines.append('</code></pre>')
+        elif code_box_open:
+            new_lines.append(f'{leading_spaces}<span class="code-line">{line_content}</span>')
+        else:
+            new_lines.append(f'{line_content}')
+
+    return '\n'.join(new_lines)
+
+# Define the argument parser
+parser = argparse.ArgumentParser(description='Process an HTML file.')
+parser.add_argument('filename', type=str, help='The name of the file to process')
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
+# Load the HTML document
+with open(args.filename, 'r') as f:
+    soup = BeautifulSoup(f, 'html.parser')
+
+# Add a style tag to the head of the document
+style = soup.new_tag('style')
+style.string = """
+.header { color: red; }
+.command { color: green; }
+.delim { color: white; background-color: grey; }
+.output { color: green; }
+.info { color: black; background-color: yellow; }
+.code-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px;
+    display: inline-block;
+}
+"""
+soup.head.append(style)
+
+# Parse the command blocks
+for pre in soup.find_all('pre'):
+    new_content = parse_content(pre.text)
+    new_soup = BeautifulSoup(new_content, 'html.parser')
+    pre.clear()
+    pre.append(new_soup)
+
+# Save the formatted HTML document
+with open(args.filename, 'w') as f:
+    f.write(str(soup))
+

@@ -206,3 +206,7 @@ cp $CTEE_CURRENT_DBFILE ./$db_filename
 # Create a default HTML report of what just happened as well.
 clook --silent -pof ./$db_filename
 
+# Format the resulting HTML file for easier reading.
+base_filename="${db_filename%.*}"
+html_filename="${base_filename}.html"
+"$output_dir"git/ctee/format_html $html_filename
