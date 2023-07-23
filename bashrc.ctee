@@ -14,7 +14,7 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
 fi
 
 #PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-PS1='CTEE [REC] > '
+#PS1='CTEE [REC] > '
 
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
