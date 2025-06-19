@@ -46,8 +46,8 @@ function cleanup {
   find "$output_dir" -name "cli_timer_*" -mtime +$age_out_days -exec rm {} \;
 
   # If there are more than 'age_out_count' files, delete the oldest
-  (ls -f -t1 $output_dir"cli_record_"* 2>/dev/null | head -n $age_out_count; ls -f $output_dir"cli_record_"* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
-  (ls -f -t1 $output_dir"cli_timer_"* 2>/dev/null | head -n $age_out_count; ls -f $output_dir"cli_timer_"* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
+  (ls -f -t1 "$output_dir"cli_record_* 2>/dev/null | head -n $age_out_count; ls -f "$output_dir"cli_record_* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
+  (ls -f -t1 "$output_dir"cli_timer_* 2>/dev/null | head -n $age_out_count; ls -f "$output_dir"cli_timer_* 2>/dev/null) | sort | uniq -u | xargs -I {} rm -f -- {}
 
   exit 0
 }
@@ -68,11 +68,11 @@ filename="cli_record_$timestamp"
 tfilename="cli_timer_$timestamp"
 
 # Create the target directory if it doesn't already exist
-mkdir -p $output_dir
+  mkdir -p "$output_dir"
 
 # Write the pid to a file
-echo $$ > $output_dir"ctee.pid"
-output_cache_path=$output_dir"ctee_cache"
+  echo $$ > "$output_dir""ctee.pid"
+  output_cache_path="$output_dir""ctee_cache"
 
 # Set Up Exports and ENVS
 export CTEE_CURRENT_LOGFILE="$output_dir$filename"
@@ -201,12 +201,12 @@ cxrmclear -f "$CTEE_CURRENT_LOGFILE"
 cxwrite "$CTEE_CURRENT_LOGFILE"
 
 # Create a copy of the resulting logfile in the current working directory
-cp $CTEE_CURRENT_DBFILE ./$db_filename
+cp "$CTEE_CURRENT_DBFILE" "./$db_filename"
 
 # Create a default HTML report of what just happened as well.
-clook --silent -pof ./$db_filename
+clook --silent -pof "./$db_filename"
 
 # Format the resulting HTML file for easier reading.
 base_filename="${db_filename%.*}"
 html_filename="${base_filename}.html"
-"$output_dir"git/ctee/format_html $html_filename
+"$output_dir"git/ctee/format_html "$html_filename"

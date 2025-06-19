@@ -10,8 +10,6 @@ import argparse
 import subprocess
 from io import StringIO
 from colorama import Fore, Back, Style
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter, landscape
 
 standard_start = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
 standard_stop = " " + Fore.WHITE + Back.RED + ' --- ' + Back.RESET + Fore.RESET + Style.RESET_ALL
@@ -175,11 +173,11 @@ def main():
                 f.write('<html>\n<head>\n<style>\npre { width: 800px; white-space: pre-wrap; word-wrap: break-word; }\n</style>\n</head>\n<body>\n')
                 f.write('<pre>\n')
                 f.write('---------------------------------------------------------\n')
-                f.write('xx______     ______   ______     ______xxxx\n')
-                f.write('x/\  ___\   /\__  _\ /\  ___\   /\  ___\xxx\n')
-                f.write('x\ \ \____  \/_/\ \/ \ \  __\   \ \  __\xxx\n')
-                f.write('xx\ \_____\    \ \_\  \ \_____\  \ \_____\x\n')
-                f.write('xxx\/_____/     \/_/   \/_____/   \/_____/x\n')
+                f.write(r'xx______     ______   ______     ______xxxx\n')
+                f.write(r'x/\  ___\   /\__  _\ /\  ___\   /\  ___\xxx\n')
+                f.write(r'x\ \ \____  \/_/\ \/ \ \  __\   \ \  __\xxx\n')
+                f.write(r'xx\ \_____\    \ \_\  \ \_____\  \ \_____\x\n')
+                f.write(r'xxx\/_____/     \/_/   \/_____/   \/_____/x\n')
                 f.write('                                          \n')
                 f.write('<h1>Command Line Session Transcription</t>\n')
                 f.write('[i] Source: https://github.com/13alvone/ctee\n')

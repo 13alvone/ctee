@@ -29,7 +29,6 @@ if ! shopt -oq posix; then
 fi
 
 # Custom Additions:
-alias target="/usr/local/bin/create_target.sh"
 alias stop_recording='echo Recording Ended; exit'
 alias stop='echo Recording Ended; exit'
 alias quit='echo Recording Ended; exit'
