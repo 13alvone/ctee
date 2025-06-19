@@ -21,6 +21,7 @@ CTEE is a suite of tools designed to enhance the command-line interface on Linux
 ## Installation
 
 To install CTEE, run the `install.sh` script as a standard user. The necessary scripts and binaries will be placed in `/usr/local/bin` and the data will be stored in the `~/.ctee/` directory.
+All Python requirements are listed in `requirements.txt` and will be installed automatically. If installing manually, run `pip3 install -r requirements.txt`.
 
 Please note that CTEE must be started from within a *bash shell only* and has only been tested on *MacOS* and *Linux* systems. If you want to change the default shell for the user, you can use the `chsh -s /bin/bash` command and restart terminal. To change it back afterwards, you can use the `chsh -s /bin/<your_previous_shell>` command and then restart terminal.
 

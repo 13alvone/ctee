@@ -42,7 +42,7 @@ def main():
             modified_time = "{:.6f}".format(float(field_parts[1]) / coeff)
             if args.normalize != 0:
                 modified_time = f"0.{modified_time.split('.')[-1]}"
-                modified_time = "{:.6f}".float(float(modified_time) + args.normalize)
+                modified_time = "{:.6f}".format(float(modified_time) + args.normalize)
                 print(f'[i] Script replay speed normalized to `{args.normalize}` seconds.')
         except:
             modified_time = '0.000000'

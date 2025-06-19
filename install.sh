@@ -24,7 +24,7 @@ sudo chmod +x /usr/local/bin/cxrun /usr/local/bin/cxrmclear /usr/local/bin/clook
 
 # Attempt to install any potentially missing python3 libraries in use
 sudo pip3 install colorama
-sudo pip3 install reportlab
+sudo pip3 install beautifulsoup4
 
 # Check the operating system
 OS="unknown"
